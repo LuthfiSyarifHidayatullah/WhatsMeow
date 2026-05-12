@@ -133,18 +133,26 @@ class MonitoringController extends Controller
 
     /**
      * Calculate average response time (in minutes)
+     * Compatible with both MySQL and SQLite
      */
     private function getAvgResponseTime(): float
     {
         $today = now()->startOfDay();
 
-        $avg = ChatSession::where('status', 'resolved')
+        $sessions = ChatSession::where('status', 'resolved')
             ->where('resolved_at', '>=', $today)
             ->whereNotNull('escalated_at')
             ->whereNotNull('assigned_at')
-            ->selectRaw('AVG(TIMESTAMPDIFF(MINUTE, escalated_at, assigned_at)) as avg_time')
-            ->value('avg_time');
+            ->get(['escalated_at', 'assigned_at']);
 
-        return round($avg ?? 0, 1);
+        if ($sessions->isEmpty()) {
+            return 0;
+        }
+
+        $totalMinutes = $sessions->sum(function ($session) {
+            return $session->escalated_at->diffInMinutes($session->assigned_at);
+        });
+
+        return round($totalMinutes / $sessions->count(), 1);
     }
 }

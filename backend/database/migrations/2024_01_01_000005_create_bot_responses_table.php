@@ -14,7 +14,7 @@ return new class extends Migration
             $table->string('trigger_keyword'); // Keyword yang memicu respons
             $table->text('response_text'); // Teks respons bot
             $table->foreignId('service_id')->nullable()->constrained('services')->nullOnDelete();
-            $table->enum('match_type', ['exact', 'contains', 'regex'])->default('contains');
+            $table->string('match_type')->default('contains'); // exact, contains, regex
             $table->integer('priority')->default(0); // Prioritas jika ada multiple match
             $table->boolean('is_active')->default(true);
             $table->timestamps();

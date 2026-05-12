@@ -16,14 +16,8 @@ return new class extends Migration
             $table->string('chat_jid'); // WhatsApp JID
             $table->foreignId('service_id')->nullable()->constrained('services')->nullOnDelete();
             $table->foreignId('officer_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->enum('status', [
-                'bot',          // Masih ditangani bot
-                'waiting',      // Menunggu petugas
-                'active',       // Sedang dilayani petugas (live chat)
-                'resolved',     // Selesai
-                'abandoned',    // Ditinggalkan pengunjung
-            ])->default('bot');
-            $table->enum('priority', ['low', 'normal', 'high', 'urgent'])->default('normal');
+            $table->string('status')->default('bot'); // bot, waiting, active, resolved, abandoned
+            $table->string('priority')->default('normal'); // low, normal, high, urgent
             $table->text('topic')->nullable(); // Topik/masalah
             $table->integer('satisfaction_rating')->nullable(); // 1-5
             $table->text('satisfaction_feedback')->nullable();
