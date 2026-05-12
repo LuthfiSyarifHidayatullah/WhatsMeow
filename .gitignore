@@ -1,0 +1,37 @@
+# Dependencies
+/backend/vendor/
+/frontend/node_modules/
+
+# Environment files
+.env
+*.env.local
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Build artifacts
+/frontend/dist/
+/bot/mpp-bot
+
+# Database files
+*.db
+*.sqlite
+
+# Laravel
+/backend/storage/*.key
+/backend/storage/framework/cache/*
+/backend/storage/framework/sessions/*
+/backend/storage/framework/views/*
+/backend/bootstrap/cache/services.php
+
+# Docker volumes
+mysql_data/
+bot_data/

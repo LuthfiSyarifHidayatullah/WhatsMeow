@@ -1,0 +1,110 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: mpp-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: mpp_chatbot
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - mpp-network
+
+  # Redis (untuk cache & queue)
+  redis:
+    image: redis:alpine
+    container_name: mpp-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - mpp-network
+
+  # Laravel Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mpp-backend
+    ports:
+      - "8000:8000"
+    environment:
+      DB_HOST: mysql
+      DB_DATABASE: mpp_chatbot
+      DB_USERNAME: root
+      DB_PASSWORD: secret
+      REDIS_HOST: redis
+      BOT_API_TOKEN: mpp-bot-secret-token-2024
+      BOT_WEBHOOK_URL: http://bot:8080
+    depends_on:
+      - mysql
+      - redis
+    volumes:
+      - ./backend:/app
+    networks:
+      - mpp-network
+
+  # Vue Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: mpp-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - mpp-network
+
+  # Go WhatsApp Bot
+  bot:
+    build:
+      context: ./bot
+      dockerfile: Dockerfile
+    container_name: mpp-bot
+    ports:
+      - "8080:8080"
+    environment:
+      API_BASE_URL: http://backend:8000/api
+      API_TOKEN: mpp-bot-secret-token-2024
+      WEBHOOK_PORT: "8080"
+    depends_on:
+      - backend
+    volumes:
+      - bot_data:/app/data
+    networks:
+      - mpp-network
+
+  # WebSocket Server (Laravel WebSockets)
+  websockets:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mpp-websockets
+    command: php artisan websockets:serve
+    ports:
+      - "6001:6001"
+    environment:
+      DB_HOST: mysql
+      DB_DATABASE: mpp_chatbot
+      DB_USERNAME: root
+      DB_PASSWORD: secret
+      REDIS_HOST: redis
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - mpp-network
+
+volumes:
+  mysql_data:
+  bot_data:
+
+networks:
+  mpp-network:
+    driver: bridge
