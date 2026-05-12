@@ -5,17 +5,16 @@ setlocal EnableDelayedExpansion
 :: ============================================================
 :: MPP Chatbot Kab. Bengkayang - Setup Script untuk Windows
 :: ============================================================
-:: Prerequisites:
-::   - PHP >= 8.2 (pastikan ada di PATH)
-::   - Composer (pastikan ada di PATH)
-::   - Node.js >= 18 + npm (pastikan ada di PATH)
-::   - Go >= 1.22 (pastikan ada di PATH)
+:: PENTING: Jalankan script ini dengan koneksi internet aktif!
+:: Script akan mengunduh semua dependencies yang diperlukan.
 :: ============================================================
 
 echo ============================================
 echo   MPP Chatbot Kab. Bengkayang - Setup
 echo   (Windows Edition)
 echo ============================================
+echo.
+echo PASTIKAN KONEKSI INTERNET AKTIF!
 echo.
 
 :: ============================================================
@@ -24,248 +23,315 @@ echo.
 echo [1/6] Memeriksa prerequisites...
 echo.
 
+set "HAS_ERROR=0"
+
 where php >nul 2>&1
 if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] PHP tidak ditemukan di PATH!
-    echo Download: https://windows.php.net/download ^(Thread Safe, VS16 x64^)
-    echo Pastikan folder PHP ditambahkan ke System PATH
-    goto :error_exit
+    echo   [X] PHP TIDAK DITEMUKAN!
+    echo       Download: https://windows.php.net/download
+    echo       Pilih: VS16 x64 Thread Safe ^(zip^)
+    echo       Extract ke C:\php lalu tambahkan ke PATH
+    set "HAS_ERROR=1"
+) else (
+    for /f "tokens=1,2 delims= " %%a in ('php -v 2^>nul') do (
+        if "%%a"=="PHP" echo   [OK] PHP %%b
+        goto :php_check_done
+    )
+    :php_check_done
 )
-for /f "tokens=*" %%i in ('php -v 2^>^&1') do (
-    echo   [OK] %%i
-    goto :php_done
-)
-:php_done
 
 where composer >nul 2>&1
 if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] Composer tidak ditemukan di PATH!
-    echo Download: https://getcomposer.org/Composer-Setup.exe
-    goto :error_exit
+    echo   [X] COMPOSER TIDAK DITEMUKAN!
+    echo       Download: https://getcomposer.org/Composer-Setup.exe
+    set "HAS_ERROR=1"
+) else (
+    echo   [OK] Composer found
 )
-for /f "tokens=*" %%i in ('composer --version 2^>^&1') do (
-    echo   [OK] %%i
-    goto :composer_done
-)
-:composer_done
 
 where node >nul 2>&1
 if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] Node.js tidak ditemukan di PATH!
-    echo Download: https://nodejs.org/ ^(LTS version^)
-    goto :error_exit
+    echo   [X] NODE.JS TIDAK DITEMUKAN!
+    echo       Download: https://nodejs.org/ ^(pilih LTS^)
+    set "HAS_ERROR=1"
+) else (
+    for /f "tokens=*" %%i in ('node --version 2^>nul') do echo   [OK] Node.js %%i
 )
-for /f "tokens=*" %%i in ('node --version 2^>^&1') do echo   [OK] Node.js %%i
 
 where npm >nul 2>&1
 if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] npm tidak ditemukan di PATH!
-    goto :error_exit
+    echo   [X] NPM TIDAK DITEMUKAN!
+    set "HAS_ERROR=1"
+) else (
+    for /f "tokens=*" %%i in ('npm --version 2^>nul') do echo   [OK] npm v%%i
 )
-for /f "tokens=*" %%i in ('npm --version 2^>^&1') do echo   [OK] npm %%i
 
 where go >nul 2>&1
 if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] Go tidak ditemukan di PATH!
-    echo Download: https://go.dev/dl/ ^(Windows installer .msi^)
-    goto :error_exit
+    echo   [X] GO TIDAK DITEMUKAN!
+    echo       Download: https://go.dev/dl/ ^(pilih .msi installer^)
+    set "HAS_ERROR=1"
+) else (
+    for /f "tokens=*" %%i in ('go version 2^>nul') do echo   [OK] %%i
 )
-for /f "tokens=*" %%i in ('go version 2^>^&1') do echo   [OK] %%i
+
+if "%HAS_ERROR%"=="1" (
+    echo.
+    echo ============================================
+    echo   GAGAL: Ada software yang belum terinstall!
+    echo ============================================
+    echo.
+    echo   Install semua software di atas, lalu buka
+    echo   Command Prompt BARU dan jalankan setup.bat lagi.
+    echo.
+    pause
+    exit /b 1
+)
 
 echo.
-echo   Semua prerequisites terpenuhi!
+echo   Semua prerequisites OK!
 echo.
 
 :: ============================================================
-:: [2/6] Setup Backend (Laravel)
+:: [2/6] Cek PHP Extensions
 :: ============================================================
-echo [2/6] Setup Backend (Laravel)...
+echo [2/6] Memeriksa PHP extensions...
 echo.
 
-cd backend
-
-:: Copy .env jika belum ada
-if not exist .env (
-    copy .env.example .env >nul
-    echo   [OK] File .env dibuat dari .env.example
-) else (
-    echo   [OK] File .env sudah ada
-)
-
-:: Buat folder database jika belum ada
-if not exist database mkdir database
-
-:: Buat file SQLite database
-if not exist database\database.sqlite (
-    type nul > database\database.sqlite
-    echo   [OK] Database SQLite dibuat (database\database.sqlite)
-) else (
-    echo   [OK] Database SQLite sudah ada
-)
-
-:: Install Composer dependencies
-echo   Installing Composer dependencies...
-call composer install --no-interaction --no-progress 2>nul
-if %ERRORLEVEL% EQU 0 (
-    echo   [OK] Composer dependencies installed
-) else (
-    echo   [WARNING] Composer install gagal. Coba manual: cd backend ^&^& composer install
-)
-
-:: Generate APP_KEY jika masih default
-findstr /C:"GENERATE_NEW_KEY_HERE" .env >nul 2>&1
-if %ERRORLEVEL% EQU 0 (
-    call php artisan key:generate --quiet 2>nul
-    echo   [OK] APP_KEY generated
-)
-
-:: Run migrations
-call php artisan migrate --force --quiet 2>nul
-if %ERRORLEVEL% EQU 0 (
-    echo   [OK] Migrasi database selesai
-) else (
-    echo   [WARNING] Migrasi gagal. Coba manual: php artisan migrate
-)
-
-:: Seed database
-call php artisan db:seed --force --quiet 2>nul
-if %ERRORLEVEL% EQU 0 (
-    echo   [OK] Database seeder selesai
-) else (
-    echo   [WARNING] Seeder gagal. Coba manual: php artisan db:seed
-)
-
-cd ..
-echo.
-
-:: ============================================================
-:: [3/6] Setup Frontend (Vue + Tailwind)
-:: ============================================================
-echo [3/6] Setup Frontend (Vue + Tailwind)...
-echo.
-
-cd frontend
-
-echo   Installing npm dependencies...
-call npm install --silent 2>nul
-if %ERRORLEVEL% EQU 0 (
-    echo   [OK] Frontend dependencies installed
-) else (
-    echo   [WARNING] npm install gagal. Coba manual: cd frontend ^&^& npm install
-)
-
-cd ..
-echo.
-
-:: ============================================================
-:: [4/6] Setup Bot (Go + WhatsMeow)
-:: ============================================================
-echo [4/6] Setup Bot (Go + WhatsMeow)...
-echo.
-
-cd bot
-
-:: Copy .env jika belum ada
-if not exist .env (
-    copy .env.example .env >nul
-    echo   [OK] File .env bot dibuat
-) else (
-    echo   [OK] File .env bot sudah ada
-)
-
-:: Download Go dependencies
-echo   Downloading Go modules...
-call go mod tidy 2>nul
-if %ERRORLEVEL% EQU 0 (
-    echo   [OK] Go modules downloaded
-) else (
-    echo   [WARNING] go mod tidy gagal. Coba manual: cd bot ^&^& go mod tidy
-)
-
-cd ..
-echo.
-
-:: ============================================================
-:: [5/6] Cek PHP Extensions
-:: ============================================================
-echo [5/6] Memeriksa PHP extensions...
-echo.
+set "EXT_ERROR=0"
 
 php -m 2>nul | findstr /i "pdo_sqlite" >nul
-if %ERRORLEVEL% EQU 0 (
-    echo   [OK] pdo_sqlite aktif
+if %ERRORLEVEL% NEQ 0 (
+    echo   [X] pdo_sqlite TIDAK AKTIF!
+    set "EXT_ERROR=1"
 ) else (
-    echo   [WARNING] pdo_sqlite TIDAK AKTIF!
-    echo   Edit php.ini: hapus ; di depan extension=pdo_sqlite
+    echo   [OK] pdo_sqlite
 )
 
 php -m 2>nul | findstr /i "mbstring" >nul
-if %ERRORLEVEL% EQU 0 (
-    echo   [OK] mbstring aktif
+if %ERRORLEVEL% NEQ 0 (
+    echo   [X] mbstring TIDAK AKTIF!
+    set "EXT_ERROR=1"
 ) else (
-    echo   [WARNING] mbstring TIDAK AKTIF!
-    echo   Edit php.ini: hapus ; di depan extension=mbstring
-)
-
-php -m 2>nul | findstr /i "openssl" >nul
-if %ERRORLEVEL% EQU 0 (
-    echo   [OK] openssl aktif
-) else (
-    echo   [WARNING] openssl TIDAK AKTIF!
+    echo   [OK] mbstring
 )
 
 php -m 2>nul | findstr /i "curl" >nul
-if %ERRORLEVEL% EQU 0 (
-    echo   [OK] curl aktif
+if %ERRORLEVEL% NEQ 0 (
+    echo   [X] curl TIDAK AKTIF!
+    set "EXT_ERROR=1"
 ) else (
-    echo   [WARNING] curl TIDAK AKTIF!
+    echo   [OK] curl
+)
+
+php -m 2>nul | findstr /i "openssl" >nul
+if %ERRORLEVEL% NEQ 0 (
+    echo   [X] openssl TIDAK AKTIF!
+    set "EXT_ERROR=1"
+) else (
+    echo   [OK] openssl
+)
+
+php -m 2>nul | findstr /i "fileinfo" >nul
+if %ERRORLEVEL% NEQ 0 (
+    echo   [X] fileinfo TIDAK AKTIF!
+    set "EXT_ERROR=1"
+) else (
+    echo   [OK] fileinfo
+)
+
+if "%EXT_ERROR%"=="1" (
+    echo.
+    echo   [!] Ada extension PHP yang belum aktif.
+    echo.
+    echo   CARA FIX:
+    echo   1. Buka file php.ini di folder PHP Anda
+    echo      ^(biasanya C:\php\php.ini^)
+    echo   2. Cari baris ^;extension=pdo_sqlite dan hapus tanda ^;
+    echo   3. Lakukan juga untuk extension lain yang belum aktif
+    echo   4. Pastikan baris extension_dir = "ext" tidak di-comment
+    echo   5. Simpan dan jalankan setup.bat lagi
+    echo.
+    pause
+    exit /b 1
 )
 
 echo.
 
 :: ============================================================
-:: [6/6] Selesai
+:: [3/6] Setup Backend (Laravel)
 :: ============================================================
-echo [6/6] Setup selesai!
-echo.
-echo ============================================
-echo   SETUP BERHASIL!
-echo ============================================
-echo.
-echo Cara menjalankan (buka 3 Command Prompt terpisah):
-echo.
-echo   Terminal 1 - Backend:
-echo     start-backend.bat
-echo.
-echo   Terminal 2 - Frontend:
-echo     start-frontend.bat
-echo.
-echo   Terminal 3 - WhatsApp Bot:
-echo     start-bot.bat
-echo.
-echo   Atau jalankan SEMUA sekaligus:
-echo     start-all.bat
-echo.
-echo Akses:
-echo   Dashboard : http://localhost:3000
-echo   API       : http://localhost:8000/api
-echo.
-echo Login:
-echo   Admin      : admin@mpp-bengkayang.go.id / password123
-echo   Supervisor : supervisor@mpp-bengkayang.go.id / password123
-echo   Petugas    : budi@mpp-bengkayang.go.id / password123
-echo.
-goto :end
-
-:error_exit
-echo.
-echo ============================================
-echo   SETUP GAGAL - Ada prerequisite yang belum terinstall
-echo ============================================
-echo.
-echo Silakan install software yang dibutuhkan lalu jalankan setup.bat lagi.
+echo [3/6] Setup Backend (Laravel + SQLite)...
 echo.
 
-:end
-endlocal
+cd /d "%~dp0backend"
+
+:: Copy .env jika belum ada
+if not exist .env (
+    copy .env.example .env >nul
+    echo   [OK] .env dibuat dari .env.example
+) else (
+    echo   [OK] .env sudah ada
+)
+
+:: Buat folder database jika belum ada
+if not exist database\NUL mkdir database
+
+:: Buat file SQLite
+if not exist database\database.sqlite (
+    type nul > database\database.sqlite
+    echo   [OK] database\database.sqlite dibuat
+) else (
+    echo   [OK] database\database.sqlite sudah ada
+)
+
+:: === COMPOSER INSTALL ===
+echo.
+echo   Mengunduh PHP dependencies (composer install)...
+echo   Ini mungkin memakan waktu 1-3 menit...
+echo.
+call composer install --no-interaction 2>&1
+if %ERRORLEVEL% NEQ 0 (
+    echo.
+    echo   [X] COMPOSER INSTALL GAGAL!
+    echo   Pastikan koneksi internet aktif dan coba lagi.
+    echo.
+    pause
+    exit /b 1
+)
+echo   [OK] Composer dependencies installed!
+echo.
+
+:: Generate APP_KEY
+findstr /C:"GENERATE_NEW_KEY_HERE" .env >nul 2>&1
+if %ERRORLEVEL% EQU 0 (
+    call php artisan key:generate
+    echo   [OK] APP_KEY generated
+)
+
+:: Jalankan migrasi
+echo   Menjalankan migrasi database...
+call php artisan migrate --force
+if %ERRORLEVEL% NEQ 0 (
+    echo   [X] Migrasi gagal! Coba hapus database dan buat ulang:
+    echo       del database\database.sqlite
+    echo       type nul ^> database\database.sqlite
+    echo       php artisan migrate
+    pause
+    exit /b 1
+)
+echo   [OK] Migrasi selesai
+
+:: Seed database
+echo   Mengisi data awal...
+call php artisan db:seed --force
+echo   [OK] Seeder selesai
+echo.
+
+cd /d "%~dp0"
+
+:: ============================================================
+:: [4/6] Setup Frontend (Vue + Tailwind)
+:: ============================================================
+echo [4/6] Setup Frontend (npm install)...
+echo.
+
+cd /d "%~dp0frontend"
+
+echo   Mengunduh Node.js dependencies (npm install)...
+echo   Ini mungkin memakan waktu 1-3 menit...
+echo.
+call npm install 2>&1
+if %ERRORLEVEL% NEQ 0 (
+    echo.
+    echo   [X] NPM INSTALL GAGAL!
+    echo   Pastikan koneksi internet aktif.
+    echo   Coba jalankan manual: cd frontend ^&^& npm install
+    echo.
+    pause
+    exit /b 1
+)
+echo.
+echo   [OK] Frontend dependencies installed!
+echo.
+
+cd /d "%~dp0"
+
+:: ============================================================
+:: [5/6] Setup Bot (Go + WhatsMeow)
+:: ============================================================
+echo [5/6] Setup Bot (go mod tidy)...
+echo.
+
+cd /d "%~dp0bot"
+
+:: Copy .env jika belum ada
+if not exist .env (
+    copy .env.example .env >nul
+    echo   [OK] .env bot dibuat
+)
+
+:: === GO GET + GO MOD TIDY ===
+echo   Mengunduh Go modules...
+echo   Ini mungkin memakan waktu 1-5 menit (pertama kali)...
+echo.
+echo   [1/4] go get go.mau.fi/whatsmeow@latest
+call go get go.mau.fi/whatsmeow@latest 2>&1
+echo   [2/4] go get github.com/mattn/go-sqlite3@latest
+call go get github.com/mattn/go-sqlite3@latest 2>&1
+echo   [3/4] go get github.com/mdp/qrterminal/v3@latest
+call go get github.com/mdp/qrterminal/v3@latest 2>&1
+echo   [4/4] go get google.golang.org/protobuf@latest
+call go get google.golang.org/protobuf@latest 2>&1
+echo.
+echo   Running go mod tidy...
+call go mod tidy 2>&1
+if %ERRORLEVEL% NEQ 0 (
+    echo.
+    echo   [X] GO MOD TIDY GAGAL!
+    echo   Pastikan koneksi internet aktif.
+    echo   Coba jalankan manual:
+    echo     cd bot
+    echo     go get go.mau.fi/whatsmeow@latest
+    echo     go get github.com/mattn/go-sqlite3@latest
+    echo     go get github.com/mdp/qrterminal/v3@latest
+    echo     go get google.golang.org/protobuf@latest
+    echo     go mod tidy
+    echo.
+    pause
+    exit /b 1
+)
+echo.
+echo   [OK] Go modules downloaded!
+echo.
+
+cd /d "%~dp0"
+
+:: ============================================================
+:: [6/6] Selesai!
+:: ============================================================
+echo ============================================
+echo.
+echo   SETUP BERHASIL! ==================
+echo.
+echo ============================================
+echo.
+echo   Cara menjalankan:
+echo.
+echo     start-all.bat     (jalankan semua sekaligus)
+echo.
+echo   Atau satu-satu (buka 3 Command Prompt):
+echo.
+echo     start-backend.bat   (Terminal 1)
+echo     start-frontend.bat  (Terminal 2)
+echo     start-bot.bat       (Terminal 3)
+echo.
+echo   Akses Dashboard: http://localhost:3000
+echo.
+echo   Login:
+echo     Email    : admin@mpp-bengkayang.go.id
+echo     Password : password123
+echo.
+echo ============================================
+echo.
 pause
