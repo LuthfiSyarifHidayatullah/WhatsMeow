@@ -14,7 +14,7 @@ class BotAuthMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         $token = $request->bearerToken();
-        $expectedToken = config('services.bot.token');
+        $expectedToken = env('BOT_API_TOKEN', config('services.bot.token', 'mpp-bot-secret-token-2024'));
 
         if (!$token || $token !== $expectedToken) {
             return response()->json(['message' => 'Unauthorized bot request'], 401);
