@@ -1,84 +1,48 @@
 @echo off
 chcp 65001 >nul 2>&1
-setlocal
-
-:: ============================================================
-:: MPP Chatbot Kab. Bengkayang - Start All Services (Windows)
-:: ============================================================
-:: Membuka 3 window Command Prompt terpisah.
-:: Tutup masing-masing window untuk menghentikan service.
-:: ============================================================
 
 echo ============================================
-echo   MPP Chatbot - Starting All Services
+echo   MPP Chatbot - Start All Services
 echo ============================================
 echo.
 
-:: Cek apakah setup sudah dijalankan
-if not exist "%~dp0backend\vendor\NUL" (
+:: Cek apakah sudah di-setup
+if not exist "%~dp0backend\vendor\autoload.php" (
     echo [!] Setup belum dijalankan!
     echo     Jalankan setup.bat terlebih dahulu.
     echo.
-    set /p RUNSETUP="Jalankan setup.bat sekarang? (Y/N): "
-    if /i "!RUNSETUP!"=="Y" (
-        call "%~dp0setup.bat"
-    ) else (
-        echo Dibatalkan. Jalankan setup.bat dulu lalu coba lagi.
-        pause
-        exit /b 1
-    )
+    pause
+    exit /b 1
 )
 
-:: ============================================================
-:: Start Backend (new window)
-:: ============================================================
-echo [1/3] Starting Backend (Laravel) ...
-echo       URL: http://localhost:8000
-start "MPP Backend - Laravel (port 8000)" cmd /k "cd /d "%~dp0" && start-backend.bat"
+echo [1/3] Starting Backend (Laravel) - port 8000
+start "MPP-Backend" cmd /k "cd /d "%~dp0backend" && php artisan serve --host=0.0.0.0 --port=8000"
 
-:: Tunggu 3 detik agar backend siap
 timeout /t 3 /nobreak >nul
 
-:: ============================================================
-:: Start Frontend (new window)
-:: ============================================================
-echo [2/3] Starting Frontend (Vue) ...
-echo       URL: http://localhost:3000
-start "MPP Frontend - Vue (port 3000)" cmd /k "cd /d "%~dp0" && start-frontend.bat"
+echo [2/3] Starting Frontend (Vue) - port 3000
+start "MPP-Frontend" cmd /k "cd /d "%~dp0frontend" && npx vite --port 3000 --host"
 
-:: Tunggu 2 detik
 timeout /t 2 /nobreak >nul
 
-:: ============================================================
-:: Start Bot (new window)
-:: ============================================================
-echo [3/3] Starting WhatsApp Bot ...
-echo       URL: http://localhost:8080
-start "MPP Bot - WhatsApp (port 8080)" cmd /k "cd /d "%~dp0" && start-bot.bat"
+echo [3/3] Starting Bot (Go) - port 8080
+start "MPP-Bot" cmd /k "cd /d "%~dp0bot" && go run ."
 
 echo.
 echo ============================================
-echo   Semua service sudah dijalankan!
+echo   SEMUA SERVICE BERJALAN!
 echo ============================================
 echo.
-echo   3 window CMD baru sudah terbuka:
+echo   Backend  : http://localhost:8000
+echo   Frontend : http://localhost:3000
+echo   Bot      : http://localhost:8080
 echo.
-echo   [Window 1] Backend  : http://localhost:8000
-echo   [Window 2] Frontend : http://localhost:3000
-echo   [Window 3] Bot      : http://localhost:8080
+echo   Login: admin@mpp-bengkayang.go.id / password123
 echo.
-echo   Buka browser: http://localhost:3000
-echo.
-echo   Login:
-echo     Email    : admin@mpp-bengkayang.go.id
-echo     Password : password123
-echo.
-echo   Untuk menghentikan: tutup masing-masing window CMD.
-echo.
+echo   Tutup window CMD untuk stop service.
 echo ============================================
 echo.
 
-:: Buka browser otomatis setelah 5 detik
 timeout /t 5 /nobreak >nul
 start http://localhost:3000
 

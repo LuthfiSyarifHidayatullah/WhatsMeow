@@ -20,18 +20,20 @@ Thumbs.db
 # Build artifacts
 /frontend/dist/
 /bot/mpp-bot
-
-# Database files
-*.db
-*.sqlite
-
-# Laravel
-/backend/storage/*.key
-/backend/storage/framework/cache/*
-/backend/storage/framework/sessions/*
-/backend/storage/framework/views/*
-/backend/bootstrap/cache/services.php
+/bot/whatsapp.db
 
 # Docker volumes
 mysql_data/
 bot_data/
+
+# Laravel generated
+/backend/storage/framework/cache/data/*
+!/backend/storage/framework/cache/data/.gitkeep
+/backend/storage/framework/sessions/*
+!/backend/storage/framework/sessions/.gitkeep
+/backend/storage/framework/views/*
+!/backend/storage/framework/views/.gitkeep
+/backend/storage/logs/*
+!/backend/storage/logs/.gitkeep
+/backend/bootstrap/cache/services.php
+/backend/bootstrap/cache/packages.php
