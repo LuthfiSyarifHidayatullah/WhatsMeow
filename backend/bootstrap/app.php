@@ -13,8 +13,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'bot.auth' => \App\Http\Middleware\BotAuthMiddleware::class,
         ]);
-
-        $middleware->statefulApi();
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
