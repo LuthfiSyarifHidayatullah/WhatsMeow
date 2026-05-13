@@ -5,11 +5,10 @@ namespace App\Events;
 use App\Models\ChatSession;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class ChatEscalatedEvent implements ShouldBroadcast
+class ChatEscalatedEvent
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
