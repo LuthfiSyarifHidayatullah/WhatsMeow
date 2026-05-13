@@ -156,6 +156,28 @@ class ChatSessionController extends Controller
             }
         }
 
+        // Send notification to WhatsApp user that chat is resolved
+        $reply = "✅ Percakapan telah diselesaikan oleh petugas.\n\n";
+        $reply .= "Terima kasih telah menghubungi MPP Kab. Bengkayang! 🙏\n\n";
+        $reply .= "Mohon berikan rating layanan kami (1-5):\n";
+        $reply .= "1 ⭐ - Sangat Buruk\n";
+        $reply .= "2 ⭐⭐ - Buruk\n";
+        $reply .= "3 ⭐⭐⭐ - Cukup\n";
+        $reply .= "4 ⭐⭐⭐⭐ - Baik\n";
+        $reply .= "5 ⭐⭐⭐⭐⭐ - Sangat Baik\n\n";
+        $reply .= "Ketik *menu* untuk memulai percakapan baru.";
+
+        // Store the message
+        Message::create([
+            'chat_session_id' => $session->id,
+            'sender_type' => 'bot',
+            'content' => $reply,
+        ]);
+
+        // Send via WhatsApp
+        $botService = new WhatsAppBotService();
+        $botService->sendMessage($session->chat_jid, $reply);
+
         return response()->json([
             'message' => 'Chat berhasil diselesaikan.',
             'session' => $session->fresh(),

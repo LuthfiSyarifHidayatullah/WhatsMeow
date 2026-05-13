@@ -79,7 +79,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useChatStore } from '../stores/chat'
 
@@ -135,6 +135,17 @@ async function fetchSessions() {
   }
 }
 
+let pollInterval = null
+
 watch(statusFilter, fetchSessions)
-onMounted(fetchSessions)
+
+onMounted(() => {
+  fetchSessions()
+  // Poll every 5 seconds for new sessions
+  pollInterval = setInterval(fetchSessions, 5000)
+})
+
+onUnmounted(() => {
+  if (pollInterval) clearInterval(pollInterval)
+})
 </script>

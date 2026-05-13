@@ -182,10 +182,29 @@ async function loadSession() {
   scrollToBottom()
 }
 
+let pollInterval = null
+
+async function pollMessages() {
+  try {
+    const data = await chatStore.fetchSession(props.sessionId)
+    session.value = data
+    const newMsgs = chatStore.messages
+    if (newMsgs.length !== messages.value.length) {
+      messages.value = newMsgs
+      scrollToBottom()
+    }
+  } catch (e) {
+    // ignore polling errors
+  }
+}
+
 onMounted(() => {
   loadSession()
 
-  // Listen for real-time messages
+  // Poll for new messages every 3 seconds (real-time without WebSocket)
+  pollInterval = setInterval(pollMessages, 3000)
+
+  // Listen for real-time messages (WebSocket - if available)
   listenChatSession(props.sessionId, (event) => {
     if (event.sender_type !== 'officer') {
       chatStore.addIncomingMessage(event)
@@ -196,6 +215,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  if (pollInterval) clearInterval(pollInterval)
   leaveChannel(`chat-session.${props.sessionId}`)
 })
 </script>

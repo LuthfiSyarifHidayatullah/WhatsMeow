@@ -18,6 +18,12 @@ class ChatbotService
      */
     public function processIncomingMessage(string $sender, string $chatJID, string $text): array
     {
+        // Check if user is giving a rating for a recently resolved session
+        $ratingResult = $this->handleRatingIfApplicable($sender, $text);
+        if ($ratingResult) {
+            return $ratingResult;
+        }
+
         // Find or create session
         $session = $this->getOrCreateSession($sender, $chatJID);
 
@@ -34,17 +40,59 @@ class ChatbotService
     }
 
     /**
-     * Get or create a chat session for visitor
+     * Handle rating input if user just resolved a session
      */
-    private function getOrCreateSession(string $sender, string $chatJID): ChatSession
+    private function handleRatingIfApplicable(string $sender, string $text): ?array
     {
-        // Check for existing active session
+        $lowerText = strtolower(trim($text));
+
+        // Check if input is a rating (1-5)
+        if (!in_array($lowerText, ['1', '2', '3', '4', '5'])) {
+            return null;
+        }
+
+        // Find recently resolved session (within last 30 minutes) without a rating
         $session = ChatSession::where('visitor_phone', $sender)
-            ->whereNotIn('status', ['resolved', 'abandoned'])
+            ->where('status', 'resolved')
+            ->whereNull('satisfaction_rating')
+            ->where('resolved_at', '>=', now()->subMinutes(30))
             ->latest()
             ->first();
 
         if (!$session) {
+            return null;
+        }
+
+        $rating = (int) $lowerText;
+        $session->update(['satisfaction_rating' => $rating]);
+
+        $stars = str_repeat('⭐', $rating);
+        $reply = "Terima kasih atas rating Anda: {$stars}\n\n";
+        $reply .= "Feedback Anda sangat berarti untuk peningkatan layanan kami.\n";
+        $reply .= "Ketik *menu* untuk memulai percakapan baru.";
+
+        $this->storeMessage($session, 'bot', $reply);
+
+        return [
+            'reply' => $reply,
+            'action' => 'rating',
+            'session_id' => $session->session_id,
+        ];
+    }
+
+    /**
+     * Get or create a chat session for visitor
+     */
+    private function getOrCreateSession(string $sender, string $chatJID): ChatSession
+    {
+        // Check for existing active session (only bot, waiting, or active)
+        $session = ChatSession::where('visitor_phone', $sender)
+            ->whereIn('status', ['bot', 'waiting', 'active'])
+            ->latest()
+            ->first();
+
+        if (!$session) {
+            // Create new session (also happens after resolved/abandoned)
             $session = ChatSession::create([
                 'session_id' => Str::uuid()->toString(),
                 'visitor_phone' => $sender,
@@ -126,6 +174,11 @@ class ChatbotService
      */
     private function handleServiceSelection(ChatSession $session, int $number): array
     {
+        // If number is 1 and service already set, show detailed info
+        if ($number === 1 && $session->service_id) {
+            return $this->showServiceInfo($session);
+        }
+
         // If number is 2 and service already set, escalate
         if ($number === 2 && $session->service_id) {
             return $this->escalateToOfficer($session, $session->service_id);
@@ -154,6 +207,48 @@ class ChatbotService
         }
 
         return $this->getMainMenu();
+    }
+
+    /**
+     * Show detailed service information from bot_responses
+     */
+    private function showServiceInfo(ChatSession $session): array
+    {
+        $service = Service::find($session->service_id);
+        if (!$service) {
+            return $this->getMainMenu();
+        }
+
+        // Get all bot responses related to this service
+        $responses = BotResponse::where('service_id', $service->id)
+            ->where('is_active', true)
+            ->orderByDesc('priority')
+            ->get();
+
+        $reply = "📋 *Informasi {$service->name}*\n\n";
+        $reply .= $service->description ?? '';
+        $reply .= "\n\n";
+
+        if ($responses->isNotEmpty()) {
+            $reply .= "📌 *Informasi Tersedia:*\n";
+            foreach ($responses as $resp) {
+                $reply .= "• {$resp->trigger_keyword}\n";
+            }
+            $reply .= "\nKetik salah satu kata kunci di atas untuk info detail.\n";
+        } else {
+            $reply .= "Untuk informasi lebih lanjut, silakan hubungi petugas.\n";
+        }
+
+        $reply .= "\nKetik *2* untuk hubungi petugas langsung.\n";
+        $reply .= "Ketik *menu* untuk kembali ke menu utama.";
+
+        $this->storeMessage($session, 'bot', $reply);
+        return [
+            'reply' => $reply,
+            'action' => 'bot_reply',
+            'session_id' => $session->session_id,
+            'service_id' => $service->id,
+        ];
     }
 
     /**
