@@ -177,9 +177,10 @@ class ChatbotService
             ]);
             $officer->increment('current_chat_count');
 
+            $serviceName = $officer->service->name ?? 'Layanan Umum';
             $reply = "✅ Anda telah terhubung dengan petugas kami.\n\n";
             $reply .= "👤 *{$officer->name}*\n";
-            $reply .= "📌 {$officer->service->name ?? 'Layanan Umum'}\n\n";
+            $reply .= "📌 {$serviceName}\n\n";
             $reply .= "Silakan sampaikan pertanyaan atau keluhan Anda. Ketik *selesai* jika sudah selesai.";
 
             $this->storeMessage($session, 'bot', $reply);
