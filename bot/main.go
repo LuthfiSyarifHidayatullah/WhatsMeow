@@ -29,12 +29,12 @@ func main() {
 
 	// Setup WhatsApp store
 	dbLog := waLog.Stdout("Database", "WARN", true)
-	container, err := sqlstore.New("sqlite3", "file:whatsapp.db?_journal_mode=WAL&_foreign_keys=on", dbLog)
+	container, err := sqlstore.New(context.Background(), "sqlite3", "file:whatsapp.db?_journal_mode=WAL&_foreign_keys=on", dbLog)
 	if err != nil {
 		panic(err)
 	}
 
-	deviceStore, err := container.GetFirstDevice()
+	deviceStore, err := container.GetFirstDevice(context.Background())
 	if err != nil {
 		panic(err)
 	}
