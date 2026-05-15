@@ -38,6 +38,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/officers', [MonitoringController::class, 'officerPerformance']);
         Route::get('/queue', [MonitoringController::class, 'queueStatus']);
         Route::get('/activity-logs', [MonitoringController::class, 'activityLogs']);
+        Route::get('/history', [MonitoringController::class, 'sessionHistory']);
+        Route::get('/ratings', [MonitoringController::class, 'ratingDetails']);
+        Route::get('/export', [MonitoringController::class, 'exportReport']);
     });
 
     // Chat Sessions (Live Chat)

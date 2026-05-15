@@ -132,6 +132,192 @@ class MonitoringController extends Controller
     }
 
     /**
+     * FIX #1: Session history with date filter
+     */
+    public function sessionHistory(Request $request): JsonResponse
+    {
+        $query = ChatSession::with(['service:id,name', 'officer:id,name'])
+            ->where('status', 'resolved');
+
+        // Date filters
+        if ($request->has('date_from')) {
+            $query->where('created_at', '>=', $request->date_from);
+        }
+        if ($request->has('date_to')) {
+            $query->where('created_at', '<=', $request->date_to . ' 23:59:59');
+        }
+        if ($request->has('service_id')) {
+            $query->where('service_id', $request->service_id);
+        }
+        if ($request->has('officer_id')) {
+            $query->where('officer_id', $request->officer_id);
+        }
+
+        $sessions = $query->latest()->paginate(30);
+
+        return response()->json($sessions);
+    }
+
+    /**
+     * FIX #2: Rating details per officer and per service
+     */
+    public function ratingDetails(Request $request): JsonResponse
+    {
+        // Rating per officer
+        $ratingPerOfficer = User::where('role', 'officer')
+            ->with('service:id,name')
+            ->get()
+            ->map(function ($officer) {
+                $sessions = ChatSession::where('officer_id', $officer->id)
+                    ->whereNotNull('satisfaction_rating');
+
+                return [
+                    'officer_id' => $officer->id,
+                    'officer_name' => $officer->name,
+                    'service' => $officer->service?->name ?? 'Umum',
+                    'total_rated' => $sessions->count(),
+                    'avg_rating' => round($sessions->avg('satisfaction_rating') ?? 0, 1),
+                    'rating_1' => (clone $sessions)->where('satisfaction_rating', 1)->count(),
+                    'rating_2' => (clone $sessions)->where('satisfaction_rating', 2)->count(),
+                    'rating_3' => (clone $sessions)->where('satisfaction_rating', 3)->count(),
+                    'rating_4' => (clone $sessions)->where('satisfaction_rating', 4)->count(),
+                    'rating_5' => (clone $sessions)->where('satisfaction_rating', 5)->count(),
+                ];
+            });
+
+        // Rating per service
+        $ratingPerService = Service::where('is_active', true)->get()->map(function ($service) {
+            $sessions = ChatSession::where('service_id', $service->id)
+                ->whereNotNull('satisfaction_rating');
+
+            return [
+                'service_id' => $service->id,
+                'service_name' => $service->name,
+                'total_rated' => $sessions->count(),
+                'avg_rating' => round($sessions->avg('satisfaction_rating') ?? 0, 1),
+                'rating_1' => (clone $sessions)->where('satisfaction_rating', 1)->count(),
+                'rating_2' => (clone $sessions)->where('satisfaction_rating', 2)->count(),
+                'rating_3' => (clone $sessions)->where('satisfaction_rating', 3)->count(),
+                'rating_4' => (clone $sessions)->where('satisfaction_rating', 4)->count(),
+                'rating_5' => (clone $sessions)->where('satisfaction_rating', 5)->count(),
+            ];
+        });
+
+        // Recent ratings with details
+        $recentRatings = ChatSession::with(['service:id,name', 'officer:id,name'])
+            ->whereNotNull('satisfaction_rating')
+            ->latest('resolved_at')
+            ->limit(50)
+            ->get()
+            ->map(fn($s) => [
+                'session_id' => $s->session_id,
+                'visitor_phone' => $s->visitor_phone,
+                'service' => $s->service?->name ?? '-',
+                'officer' => $s->officer?->name ?? '-',
+                'rating' => $s->satisfaction_rating,
+                'topic' => $s->topic,
+                'resolved_at' => $s->resolved_at?->format('d M Y H:i'),
+            ]);
+
+        return response()->json([
+            'per_officer' => $ratingPerOfficer,
+            'per_service' => $ratingPerService,
+            'recent' => $recentRatings,
+        ]);
+    }
+
+    /**
+     * FIX #3: Export report data (JSON format, frontend converts to Excel)
+     */
+    public function exportReport(Request $request): JsonResponse
+    {
+        $period = $request->get('period', 'month'); // week, month, year
+        $type = $request->get('type', 'topics'); // topics, ratings
+
+        if ($type === 'topics') {
+            return $this->exportTopics($period);
+        }
+
+        return $this->exportRatings($period);
+    }
+
+    private function exportTopics(string $period): JsonResponse
+    {
+        $startDate = match($period) {
+            'week' => now()->startOfWeek(),
+            'month' => now()->startOfMonth(),
+            'year' => now()->startOfYear(),
+            default => now()->startOfMonth(),
+        };
+
+        $topics = ChatSession::where('created_at', '>=', $startDate)
+            ->whereNotNull('topic')
+            ->select('topic', 'service_id')
+            ->with('service:id,name')
+            ->get()
+            ->groupBy('topic')
+            ->map(function ($group, $topic) {
+                return [
+                    'topic' => $topic,
+                    'count' => $group->count(),
+                    'service' => $group->first()->service?->name ?? '-',
+                ];
+            })
+            ->sortByDesc('count')
+            ->values();
+
+        $summary = [
+            'period' => $period,
+            'start_date' => $startDate->format('d M Y'),
+            'end_date' => now()->format('d M Y'),
+            'total_sessions' => ChatSession::where('created_at', '>=', $startDate)->count(),
+            'total_resolved' => ChatSession::where('created_at', '>=', $startDate)->where('status', 'resolved')->count(),
+        ];
+
+        return response()->json([
+            'summary' => $summary,
+            'data' => $topics,
+        ]);
+    }
+
+    private function exportRatings(string $period): JsonResponse
+    {
+        $startDate = match($period) {
+            'week' => now()->startOfWeek(),
+            'month' => now()->startOfMonth(),
+            'year' => now()->startOfYear(),
+            default => now()->startOfMonth(),
+        };
+
+        $ratings = ChatSession::where('resolved_at', '>=', $startDate)
+            ->whereNotNull('satisfaction_rating')
+            ->with(['service:id,name', 'officer:id,name'])
+            ->latest('resolved_at')
+            ->get()
+            ->map(fn($s) => [
+                'tanggal' => $s->resolved_at?->format('d M Y'),
+                'visitor' => $s->visitor_phone,
+                'layanan' => $s->service?->name ?? '-',
+                'petugas' => $s->officer?->name ?? '-',
+                'rating' => $s->satisfaction_rating,
+                'topik' => $s->topic ?? '-',
+            ]);
+
+        $summary = [
+            'period' => $period,
+            'start_date' => $startDate->format('d M Y'),
+            'end_date' => now()->format('d M Y'),
+            'total_rated' => $ratings->count(),
+            'avg_rating' => round($ratings->avg('rating') ?? 0, 1),
+        ];
+
+        return response()->json([
+            'summary' => $summary,
+            'data' => $ratings,
+        ]);
+    }
+
+    /**
      * Calculate average response time (in minutes)
      * Compatible with both MySQL and SQLite
      */

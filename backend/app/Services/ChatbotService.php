@@ -82,6 +82,7 @@ class ChatbotService
 
     /**
      * Get or create a chat session for visitor
+     * FIX #5: Returning user setelah sesi selesai → buat session baru + tampilkan menu
      */
     private function getOrCreateSession(string $sender, string $chatJID): ChatSession
     {
@@ -92,13 +93,16 @@ class ChatbotService
             ->first();
 
         if (!$session) {
-            // Create new session (also happens after resolved/abandoned)
+            // Create new session (returning user or first time)
             $session = ChatSession::create([
                 'session_id' => Str::uuid()->toString(),
                 'visitor_phone' => $sender,
                 'chat_jid' => $chatJID,
                 'status' => 'bot',
             ]);
+
+            // Mark as new session so we show welcome menu
+            $session->_is_new = true;
         }
 
         return $session;
@@ -106,10 +110,17 @@ class ChatbotService
 
     /**
      * Handle message in bot mode
+     * FIX #4: Jika pesan tidak dikenali → tampilkan menu awal (bukan "belum memahami")
+     * FIX #5: Returning user → langsung menu
      */
     private function handleBotMode(ChatSession $session, string $text): array
     {
         $lowerText = strtolower(trim($text));
+
+        // FIX #5: If this is a brand new session (returning user), show menu
+        if (!empty($session->_is_new)) {
+            return $this->getMainMenu();
+        }
 
         // Check for menu commands
         if (in_array($lowerText, ['menu', 'halo', 'hai', 'hi', 'hello', 'start'])) {
@@ -129,7 +140,6 @@ class ChatbotService
         // Try to match with bot responses
         $botResponse = $this->findBotResponse($text);
         if ($botResponse) {
-            // Store bot reply
             $this->storeMessage($session, 'bot', $botResponse->response_text);
             return [
                 'reply' => $botResponse->response_text,
@@ -157,16 +167,8 @@ class ChatbotService
             ];
         }
 
-        // Default response
-        $reply = "Maaf, saya belum memahami pertanyaan Anda. 🙏\n\n";
-        $reply .= "Silakan ketik *menu* untuk melihat daftar layanan, atau ketik *petugas* untuk terhubung langsung dengan petugas kami.";
-
-        $this->storeMessage($session, 'bot', $reply);
-        return [
-            'reply' => $reply,
-            'action' => 'bot_reply',
-            'session_id' => $session->session_id,
-        ];
+        // FIX #4: Jika tidak dikenali → tampilkan menu awal (bukan pesan error)
+        return $this->getMainMenu();
     }
 
     /**
@@ -321,7 +323,7 @@ class ChatbotService
         event(new NewMessageEvent($session, $text, 'visitor'));
 
         return [
-            'reply' => '',  // Don't send auto reply while waiting
+            'reply' => '',
             'action' => 'waiting',
             'session_id' => $session->session_id,
         ];
@@ -339,11 +341,11 @@ class ChatbotService
             return $this->resolveSession($session);
         }
 
-        // Forward message to officer dashboard via WebSocket
+        // Forward message to officer dashboard
         event(new NewMessageEvent($session, $text, 'visitor'));
 
         return [
-            'reply' => '',  // Officer will reply through dashboard
+            'reply' => '',
             'action' => 'forward_to_officer',
             'session_id' => $session->session_id,
             'officer_id' => $session->officer_id,
@@ -418,7 +420,6 @@ class ChatbotService
     {
         $lowerText = strtolower($text);
 
-        // Exact match first
         $response = BotResponse::where('is_active', true)
             ->where('match_type', 'exact')
             ->whereRaw('LOWER(trigger_keyword) = ?', [$lowerText])
@@ -427,7 +428,6 @@ class ChatbotService
 
         if ($response) return $response;
 
-        // Contains match
         $responses = BotResponse::where('is_active', true)
             ->where('match_type', 'contains')
             ->orderByDesc('priority')
@@ -473,7 +473,6 @@ class ChatbotService
             ->whereColumn('current_chat_count', '<', 'max_concurrent_chats');
 
         if ($serviceId) {
-            // Try service-specific officer first
             $officer = (clone $query)->where('service_id', $serviceId)
                 ->orderBy('current_chat_count')
                 ->first();
@@ -481,7 +480,6 @@ class ChatbotService
             if ($officer) return $officer;
         }
 
-        // Fallback to any available officer
         return $query->orderBy('current_chat_count')->first();
     }
 

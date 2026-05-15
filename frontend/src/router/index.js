@@ -50,6 +50,21 @@ const routes = [
         component: () => import('../views/BotResponses.vue'),
       },
       {
+        path: 'history',
+        name: 'History',
+        component: () => import('../views/History.vue'),
+      },
+      {
+        path: 'ratings',
+        name: 'Ratings',
+        component: () => import('../views/Ratings.vue'),
+      },
+      {
+        path: 'export',
+        name: 'ExportReport',
+        component: () => import('../views/ExportReport.vue'),
+      },
+      {
         path: 'activity-logs',
         name: 'ActivityLogs',
         component: () => import('../views/ActivityLogs.vue'),

@@ -74,6 +74,8 @@ const menuItems = computed(() => {
     { path: '/', label: 'Dashboard', icon: 'DashboardIcon' },
     { path: '/live-chat', label: 'Live Chat', icon: 'ChatIcon' },
     { path: '/monitoring', label: 'Monitoring', icon: 'MonitorIcon' },
+    { path: '/history', label: 'Riwayat Sesi', icon: 'HistoryIcon' },
+    { path: '/ratings', label: 'Rating', icon: 'RatingIcon' },
   ]
 
   if (authStore.isAdmin || authStore.isSupervisor) {
@@ -81,6 +83,7 @@ const menuItems = computed(() => {
       { path: '/services', label: 'Layanan', icon: 'ServiceIcon' },
       { path: '/officers', label: 'Petugas', icon: 'UserIcon' },
       { path: '/bot-responses', label: 'Respons Bot', icon: 'BotIcon' },
+      { path: '/export', label: 'Export Laporan', icon: 'ExportIcon' },
       { path: '/activity-logs', label: 'Log Aktivitas', icon: 'LogIcon' },
     )
   }

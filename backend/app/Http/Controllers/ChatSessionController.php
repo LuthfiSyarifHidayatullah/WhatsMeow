@@ -65,6 +65,7 @@ class ChatSessionController extends Controller
 
     /**
      * Officer accepts a waiting chat
+     * FIX #6: Kirim notif ke WA user bahwa petugas sudah masuk
      */
     public function accept(Request $request, string $sessionId): JsonResponse
     {
@@ -87,6 +88,25 @@ class ChatSessionController extends Controller
         ]);
 
         $user->increment('current_chat_count');
+
+        // FIX #6: Kirim notif ke WA user bahwa petugas sudah masuk
+        $serviceName = $user->service->name ?? 'Layanan Umum';
+        $notif = "✅ Petugas telah bergabung ke percakapan Anda.\n\n";
+        $notif .= "👤 *{$user->name}*\n";
+        $notif .= "📌 {$serviceName}\n\n";
+        $notif .= "Silakan sampaikan pertanyaan atau keluhan Anda.\n";
+        $notif .= "Ketik *selesai* jika sudah selesai.";
+
+        // Store the notification message
+        Message::create([
+            'chat_session_id' => $session->id,
+            'sender_type' => 'bot',
+            'content' => $notif,
+        ]);
+
+        // Send via WhatsApp
+        $botService = new WhatsAppBotService();
+        $botService->sendMessage($session->chat_jid, $notif);
 
         return response()->json([
             'message' => 'Chat berhasil diterima.',
