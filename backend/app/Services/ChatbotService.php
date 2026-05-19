@@ -18,6 +18,9 @@ class ChatbotService
      */
     public function processIncomingMessage(string $sender, string $chatJID, string $text): array
     {
+        // FIX #3: Check if rating window expired (>5 min since resolved without rating)
+        $this->expireRatingWindow($sender);
+
         // Check if user is giving a rating for a recently resolved session
         $ratingResult = $this->handleRatingIfApplicable($sender, $text);
         if ($ratingResult) {
@@ -26,6 +29,12 @@ class ChatbotService
 
         // Find or create session
         $session = $this->getOrCreateSession($sender, $chatJID);
+
+        // FIX #1: Check session timeout (>7 min idle in active/waiting = auto resolve)
+        if ($this->checkAndHandleTimeout($session)) {
+            // Session was timed out, create new session
+            $session = $this->getOrCreateSession($sender, $chatJID);
+        }
 
         // Store incoming message
         $this->storeMessage($session, 'visitor', $text);
@@ -40,6 +49,58 @@ class ChatbotService
     }
 
     /**
+     * FIX #3: Expire rating window - if >5 min since resolved and no rating, just close it
+     */
+    private function expireRatingWindow(string $sender): void
+    {
+        ChatSession::where('visitor_phone', $sender)
+            ->where('status', 'resolved')
+            ->whereNull('satisfaction_rating')
+            ->where('resolved_at', '<', now()->subMinutes(5))
+            ->update(['satisfaction_rating' => 0]); // 0 = not rated (expired)
+    }
+
+    /**
+     * FIX #1: Check if session has timed out (7 min idle)
+     */
+    private function checkAndHandleTimeout(ChatSession $session): bool
+    {
+        if (!in_array($session->status, ['active', 'waiting'])) {
+            return false;
+        }
+
+        // Get last message time
+        $lastMessage = Message::where('chat_session_id', $session->id)
+            ->latest()
+            ->first();
+
+        if (!$lastMessage) {
+            return false;
+        }
+
+        $minutesSinceLastMessage = now()->diffInMinutes($lastMessage->created_at);
+
+        // Auto-resolve after 7 minutes of inactivity
+        if ($minutesSinceLastMessage >= 7) {
+            $session->update([
+                'status' => 'resolved',
+                'resolved_at' => now(),
+            ]);
+
+            if ($session->officer_id) {
+                $officer = User::find($session->officer_id);
+                if ($officer) {
+                    $officer->decrement('current_chat_count');
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Handle rating input if user just resolved a session
      */
     private function handleRatingIfApplicable(string $sender, string $text): ?array
@@ -51,11 +112,11 @@ class ChatbotService
             return null;
         }
 
-        // Find recently resolved session (within last 30 minutes) without a rating
+        // Find recently resolved session (within 5 minutes) without a rating
         $session = ChatSession::where('visitor_phone', $sender)
             ->where('status', 'resolved')
             ->whereNull('satisfaction_rating')
-            ->where('resolved_at', '>=', now()->subMinutes(30))
+            ->where('resolved_at', '>=', now()->subMinutes(5))
             ->latest()
             ->first();
 
@@ -82,7 +143,6 @@ class ChatbotService
 
     /**
      * Get or create a chat session for visitor
-     * FIX #5: Returning user setelah sesi selesai → buat session baru + tampilkan menu
      */
     private function getOrCreateSession(string $sender, string $chatJID): ChatSession
     {
@@ -93,7 +153,6 @@ class ChatbotService
             ->first();
 
         if (!$session) {
-            // Create new session (returning user or first time)
             $session = ChatSession::create([
                 'session_id' => Str::uuid()->toString(),
                 'visitor_phone' => $sender,
@@ -110,26 +169,32 @@ class ChatbotService
 
     /**
      * Handle message in bot mode
-     * FIX #4: Jika pesan tidak dikenali → tampilkan menu awal (bukan "belum memahami")
-     * FIX #5: Returning user → langsung menu
      */
     private function handleBotMode(ChatSession $session, string $text): array
     {
         $lowerText = strtolower(trim($text));
 
-        // FIX #5: If this is a brand new session (returning user), show menu
+        // If this is a brand new session (returning user), show menu
         if (!empty($session->_is_new)) {
             return $this->getMainMenu();
         }
 
-        // Check for menu commands
+        // Check for menu commands - FIX #2: reset service_id when going to menu
         if (in_array($lowerText, ['menu', 'halo', 'hai', 'hi', 'hello', 'start'])) {
+            $session->update(['service_id' => null, 'topic' => null]);
             return $this->getMainMenu();
         }
 
-        // Check for escalation request
+        // Check for escalation request - FIX #2: from menu = no service (umum)
         if (in_array($lowerText, ['petugas', 'operator', 'live chat', 'bantuan langsung'])) {
+            // Reset service so it goes to "Umum" category
+            $session->update(['service_id' => null]);
             return $this->escalateToOfficer($session, null);
+        }
+
+        // Check for "selesai" in bot mode too
+        if (in_array($lowerText, ['selesai', 'done', 'keluar', 'exit'])) {
+            return $this->resolveSession($session);
         }
 
         // Check service selection by number
@@ -140,9 +205,16 @@ class ChatbotService
         // Try to match with bot responses
         $botResponse = $this->findBotResponse($text);
         if ($botResponse) {
-            $this->storeMessage($session, 'bot', $botResponse->response_text);
+            // FIX #1: Always add navigation options after bot response
+            $replyText = $botResponse->response_text;
+            $replyText .= "\n\n---\n";
+            $replyText .= "Ketik *menu* untuk kembali ke menu utama\n";
+            $replyText .= "Ketik *selesai* untuk mengakhiri sesi\n";
+            $replyText .= "Ketik *petugas* untuk bicara dengan petugas";
+
+            $this->storeMessage($session, 'bot', $replyText);
             return [
-                'reply' => $botResponse->response_text,
+                'reply' => $replyText,
                 'action' => 'bot_reply',
                 'session_id' => $session->session_id,
             ];
@@ -167,7 +239,7 @@ class ChatbotService
             ];
         }
 
-        // FIX #4: Jika tidak dikenali → tampilkan menu awal (bukan pesan error)
+        // Not recognized → show menu
         return $this->getMainMenu();
     }
 
@@ -213,6 +285,7 @@ class ChatbotService
 
     /**
      * Show detailed service information from bot_responses
+     * FIX #1: Add selesai/menu option
      */
     private function showServiceInfo(ChatSession $session): array
     {
@@ -221,7 +294,6 @@ class ChatbotService
             return $this->getMainMenu();
         }
 
-        // Get all bot responses related to this service
         $responses = BotResponse::where('service_id', $service->id)
             ->where('is_active', true)
             ->orderByDesc('priority')
@@ -241,8 +313,10 @@ class ChatbotService
             $reply .= "Untuk informasi lebih lanjut, silakan hubungi petugas.\n";
         }
 
-        $reply .= "\nKetik *2* untuk hubungi petugas langsung.\n";
-        $reply .= "Ketik *menu* untuk kembali ke menu utama.";
+        $reply .= "\n---\n";
+        $reply .= "Ketik *2* untuk hubungi petugas langsung\n";
+        $reply .= "Ketik *menu* untuk kembali ke menu utama\n";
+        $reply .= "Ketik *selesai* untuk mengakhiri sesi";
 
         $this->storeMessage($session, 'bot', $reply);
         return [
@@ -262,7 +336,6 @@ class ChatbotService
             $session->update(['service_id' => $serviceId]);
         }
 
-        // Find available officer
         $officer = $this->findAvailableOfficer($session->service_id);
 
         if ($officer) {
@@ -281,8 +354,6 @@ class ChatbotService
             $reply .= "Silakan sampaikan pertanyaan atau keluhan Anda. Ketik *selesai* jika sudah selesai.";
 
             $this->storeMessage($session, 'bot', $reply);
-
-            // Broadcast event to dashboard
             event(new ChatEscalatedEvent($session));
 
             return [
@@ -294,7 +365,6 @@ class ChatbotService
             ];
         }
 
-        // No officer available, put in queue
         $session->update([
             'status' => 'waiting',
             'escalated_at' => now(),
@@ -319,7 +389,6 @@ class ChatbotService
      */
     private function handleWaitingMode(ChatSession $session, string $text): array
     {
-        // Just store the message, notify dashboard
         event(new NewMessageEvent($session, $text, 'visitor'));
 
         return [
@@ -336,12 +405,10 @@ class ChatbotService
     {
         $lowerText = strtolower(trim($text));
 
-        // Check if visitor wants to end chat
         if (in_array($lowerText, ['selesai', 'terima kasih', 'done'])) {
             return $this->resolveSession($session);
         }
 
-        // Forward message to officer dashboard
         event(new NewMessageEvent($session, $text, 'visitor'));
 
         return [
@@ -376,7 +443,8 @@ class ChatbotService
         $reply .= "3 ⭐⭐⭐ - Cukup\n";
         $reply .= "4 ⭐⭐⭐⭐ - Baik\n";
         $reply .= "5 ⭐⭐⭐⭐⭐ - Sangat Baik\n\n";
-        $reply .= "Ketik *menu* untuk memulai percakapan baru.";
+        $reply .= "Ketik *menu* untuk memulai percakapan baru.\n";
+        $reply .= "_Rating akan otomatis ditutup dalam 5 menit._";
 
         $this->storeMessage($session, 'bot', $reply);
 
@@ -413,9 +481,6 @@ class ChatbotService
         ];
     }
 
-    /**
-     * Find bot response matching the text
-     */
     private function findBotResponse(string $text): ?BotResponse
     {
         $lowerText = strtolower($text);
@@ -442,9 +507,6 @@ class ChatbotService
         return null;
     }
 
-    /**
-     * Match service by keywords
-     */
     private function matchServiceByKeywords(string $text): ?Service
     {
         $lowerText = strtolower($text);
@@ -462,9 +524,6 @@ class ChatbotService
         return null;
     }
 
-    /**
-     * Find available officer for a service
-     */
     private function findAvailableOfficer(?int $serviceId): ?User
     {
         $query = User::where('role', 'officer')
@@ -483,9 +542,6 @@ class ChatbotService
         return $query->orderBy('current_chat_count')->first();
     }
 
-    /**
-     * Store message in database
-     */
     private function storeMessage(ChatSession $session, string $senderType, string $content, ?int $userId = null): Message
     {
         return Message::create([
@@ -496,9 +552,6 @@ class ChatbotService
         ]);
     }
 
-    /**
-     * Default response
-     */
     private function getDefaultResponse(): array
     {
         return [

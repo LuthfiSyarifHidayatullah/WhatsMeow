@@ -227,31 +227,42 @@ class MonitoringController extends Controller
     }
 
     /**
-     * FIX #3: Export report data (JSON format, frontend converts to Excel)
+     * Export report data (JSON format, frontend converts to Excel)
+     * FIX #2: Support custom date range (date_from, date_to)
      */
     public function exportReport(Request $request): JsonResponse
     {
-        $period = $request->get('period', 'month'); // week, month, year
+        $period = $request->get('period', 'month'); // week, month, year, custom
         $type = $request->get('type', 'topics'); // topics, ratings
+        $dateFrom = $request->get('date_from');
+        $dateTo = $request->get('date_to');
 
         if ($type === 'topics') {
-            return $this->exportTopics($period);
+            return $this->exportTopics($period, $dateFrom, $dateTo);
         }
 
-        return $this->exportRatings($period);
+        return $this->exportRatings($period, $dateFrom, $dateTo);
     }
 
-    private function exportTopics(string $period): JsonResponse
+    private function exportTopics(string $period, ?string $dateFrom = null, ?string $dateTo = null): JsonResponse
     {
-        $startDate = match($period) {
-            'week' => now()->startOfWeek(),
-            'month' => now()->startOfMonth(),
-            'year' => now()->startOfYear(),
-            default => now()->startOfMonth(),
-        };
+        if ($dateFrom && $dateTo) {
+            $startDate = \Carbon\Carbon::parse($dateFrom)->startOfDay();
+            $endDate = \Carbon\Carbon::parse($dateTo)->endOfDay();
+        } else {
+            $startDate = match($period) {
+                'week' => now()->startOfWeek(),
+                'month' => now()->startOfMonth(),
+                'year' => now()->startOfYear(),
+                default => now()->startOfMonth(),
+            };
+            $endDate = now();
+        }
 
         $topics = ChatSession::where('created_at', '>=', $startDate)
+            ->where('created_at', '<=', $endDate)
             ->whereNotNull('topic')
+            ->where('topic', '!=', '')
             ->select('topic', 'service_id')
             ->with('service:id,name')
             ->get()
@@ -269,9 +280,9 @@ class MonitoringController extends Controller
         $summary = [
             'period' => $period,
             'start_date' => $startDate->format('d M Y'),
-            'end_date' => now()->format('d M Y'),
-            'total_sessions' => ChatSession::where('created_at', '>=', $startDate)->count(),
-            'total_resolved' => ChatSession::where('created_at', '>=', $startDate)->where('status', 'resolved')->count(),
+            'end_date' => $endDate->format('d M Y'),
+            'total_sessions' => ChatSession::where('created_at', '>=', $startDate)->where('created_at', '<=', $endDate)->count(),
+            'total_resolved' => ChatSession::where('created_at', '>=', $startDate)->where('created_at', '<=', $endDate)->where('status', 'resolved')->count(),
         ];
 
         return response()->json([
@@ -280,17 +291,25 @@ class MonitoringController extends Controller
         ]);
     }
 
-    private function exportRatings(string $period): JsonResponse
+    private function exportRatings(string $period, ?string $dateFrom = null, ?string $dateTo = null): JsonResponse
     {
-        $startDate = match($period) {
-            'week' => now()->startOfWeek(),
-            'month' => now()->startOfMonth(),
-            'year' => now()->startOfYear(),
-            default => now()->startOfMonth(),
-        };
+        if ($dateFrom && $dateTo) {
+            $startDate = \Carbon\Carbon::parse($dateFrom)->startOfDay();
+            $endDate = \Carbon\Carbon::parse($dateTo)->endOfDay();
+        } else {
+            $startDate = match($period) {
+                'week' => now()->startOfWeek(),
+                'month' => now()->startOfMonth(),
+                'year' => now()->startOfYear(),
+                default => now()->startOfMonth(),
+            };
+            $endDate = now();
+        }
 
         $ratings = ChatSession::where('resolved_at', '>=', $startDate)
+            ->where('resolved_at', '<=', $endDate)
             ->whereNotNull('satisfaction_rating')
+            ->where('satisfaction_rating', '>', 0)
             ->with(['service:id,name', 'officer:id,name'])
             ->latest('resolved_at')
             ->get()
@@ -306,7 +325,7 @@ class MonitoringController extends Controller
         $summary = [
             'period' => $period,
             'start_date' => $startDate->format('d M Y'),
-            'end_date' => now()->format('d M Y'),
+            'end_date' => $endDate->format('d M Y'),
             'total_rated' => $ratings->count(),
             'avg_rating' => round($ratings->avg('rating') ?? 0, 1),
         ];

@@ -11,10 +11,15 @@
       <div class="card">
         <h3 class="text-lg font-semibold mb-3">📊 Topik Terbanyak Ditanyakan</h3>
         <p class="text-sm text-gray-500 mb-4">Rekapan topik/pertanyaan paling sering dari pengunjung</p>
-        <div class="flex gap-2 mb-4">
+        <div class="flex gap-2 mb-3">
           <button @click="loadReport('topics', 'week')" :class="period === 'week' && type === 'topics' ? 'btn-primary' : 'btn-secondary'" class="text-xs">Minggu Ini</button>
           <button @click="loadReport('topics', 'month')" :class="period === 'month' && type === 'topics' ? 'btn-primary' : 'btn-secondary'" class="text-xs">Bulan Ini</button>
           <button @click="loadReport('topics', 'year')" :class="period === 'year' && type === 'topics' ? 'btn-primary' : 'btn-secondary'" class="text-xs">Tahun Ini</button>
+        </div>
+        <div class="flex gap-2 mb-4">
+          <input v-model="dateFrom" type="date" class="input-field text-xs flex-1" />
+          <input v-model="dateTo" type="date" class="input-field text-xs flex-1" />
+          <button @click="loadReportCustom('topics')" class="btn-secondary text-xs">Custom</button>
         </div>
         <button v-if="reportData && type === 'topics'" @click="downloadExcel('topics')" class="btn-success text-sm w-full">
           📥 Download Excel - Topik
@@ -25,10 +30,15 @@
       <div class="card">
         <h3 class="text-lg font-semibold mb-3">⭐ Rating Per Layanan</h3>
         <p class="text-sm text-gray-500 mb-4">Rekapan rating kepuasan per layanan dan petugas</p>
-        <div class="flex gap-2 mb-4">
+        <div class="flex gap-2 mb-3">
           <button @click="loadReport('ratings', 'week')" :class="period === 'week' && type === 'ratings' ? 'btn-primary' : 'btn-secondary'" class="text-xs">Minggu Ini</button>
           <button @click="loadReport('ratings', 'month')" :class="period === 'month' && type === 'ratings' ? 'btn-primary' : 'btn-secondary'" class="text-xs">Bulan Ini</button>
           <button @click="loadReport('ratings', 'year')" :class="period === 'year' && type === 'ratings' ? 'btn-primary' : 'btn-secondary'" class="text-xs">Tahun Ini</button>
+        </div>
+        <div class="flex gap-2 mb-4">
+          <input v-model="dateFrom" type="date" class="input-field text-xs flex-1" />
+          <input v-model="dateTo" type="date" class="input-field text-xs flex-1" />
+          <button @click="loadReportCustom('ratings')" class="btn-secondary text-xs">Custom</button>
         </div>
         <button v-if="reportData && type === 'ratings'" @click="downloadExcel('ratings')" class="btn-success text-sm w-full">
           📥 Download Excel - Rating
@@ -107,11 +117,24 @@ import api from '../composables/useApi'
 const reportData = ref(null)
 const type = ref('')
 const period = ref('')
+const dateFrom = ref('')
+const dateTo = ref('')
 
 async function loadReport(reportType, reportPeriod) {
   type.value = reportType
   period.value = reportPeriod
   const res = await api.get(`/monitoring/export?type=${reportType}&period=${reportPeriod}`)
+  reportData.value = res.data
+}
+
+async function loadReportCustom(reportType) {
+  if (!dateFrom.value || !dateTo.value) {
+    alert('Pilih tanggal mulai dan akhir')
+    return
+  }
+  type.value = reportType
+  period.value = 'custom'
+  const res = await api.get(`/monitoring/export?type=${reportType}&period=custom&date_from=${dateFrom.value}&date_to=${dateTo.value}`)
   reportData.value = res.data
 }
 
