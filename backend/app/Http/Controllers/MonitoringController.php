@@ -15,25 +15,36 @@ class MonitoringController extends Controller
 {
     /**
      * Get dashboard statistics
+     * Officers only see stats for their assigned service
      */
-    public function dashboard(): JsonResponse
+    public function dashboard(Request $request): JsonResponse
     {
         $today = now()->startOfDay();
+        $serviceId = $this->resolveServiceFilter($request);
+
+        $sessionQuery = ChatSession::query();
+        if ($serviceId) {
+            $sessionQuery->where('service_id', $serviceId);
+        }
 
         $stats = [
-            'total_sessions_today' => ChatSession::where('created_at', '>=', $today)->count(),
-            'active_sessions' => ChatSession::where('status', 'active')->count(),
-            'waiting_sessions' => ChatSession::where('status', 'waiting')->count(),
-            'bot_sessions' => ChatSession::where('status', 'bot')->count(),
-            'resolved_today' => ChatSession::where('status', 'resolved')
+            'total_sessions_today' => (clone $sessionQuery)->where('created_at', '>=', $today)->count(),
+            'active_sessions' => (clone $sessionQuery)->where('status', 'active')->count(),
+            'waiting_sessions' => (clone $sessionQuery)->where('status', 'waiting')->count(),
+            'bot_sessions' => (clone $sessionQuery)->where('status', 'bot')->count(),
+            'resolved_today' => (clone $sessionQuery)->where('status', 'resolved')
                 ->where('resolved_at', '>=', $today)->count(),
-            'avg_response_time' => $this->getAvgResponseTime(),
-            'avg_satisfaction' => ChatSession::whereNotNull('satisfaction_rating')
+            'avg_response_time' => $this->getAvgResponseTime($serviceId),
+            'avg_satisfaction' => (clone $sessionQuery)->whereNotNull('satisfaction_rating')
                 ->where('resolved_at', '>=', $today)
                 ->avg('satisfaction_rating'),
             'online_officers' => User::where('is_online', true)
-                ->where('role', 'officer')->count(),
-            'total_officers' => User::where('role', 'officer')->count(),
+                ->where('role', 'officer')
+                ->when($serviceId, fn($q) => $q->where('service_id', $serviceId))
+                ->count(),
+            'total_officers' => User::where('role', 'officer')
+                ->when($serviceId, fn($q) => $q->where('service_id', $serviceId))
+                ->count(),
         ];
 
         return response()->json($stats);
@@ -41,39 +52,53 @@ class MonitoringController extends Controller
 
     /**
      * Get service-level statistics
+     * Officers only see their assigned service
      */
-    public function serviceStats(): JsonResponse
+    public function serviceStats(Request $request): JsonResponse
     {
         $today = now()->startOfDay();
+        $serviceId = $this->resolveServiceFilter($request);
 
-        $services = Service::withCount([
+        $query = Service::withCount([
             'chatSessions as total_today' => fn($q) => $q->where('created_at', '>=', $today),
             'chatSessions as active_count' => fn($q) => $q->where('status', 'active'),
             'chatSessions as waiting_count' => fn($q) => $q->where('status', 'waiting'),
             'chatSessions as resolved_today' => fn($q) => $q->where('status', 'resolved')
                 ->where('resolved_at', '>=', $today),
-        ])->with(['officers' => fn($q) => $q->select('id', 'name', 'is_online', 'current_chat_count', 'service_id')])
-            ->get();
+        ])->with(['officers' => fn($q) => $q->select('id', 'name', 'is_online', 'current_chat_count', 'service_id')]);
+
+        if ($serviceId) {
+            $query->where('id', $serviceId);
+        }
+
+        $services = $query->get();
 
         return response()->json($services);
     }
 
     /**
      * Get officer performance metrics
+     * Officers only see colleagues in their assigned service
      */
     public function officerPerformance(Request $request): JsonResponse
     {
         $today = now()->startOfDay();
+        $serviceId = $this->resolveServiceFilter($request);
 
-        $officers = User::where('role', 'officer')
+        $query = User::where('role', 'officer')
             ->withCount([
                 'assignedSessions as handled_today' => fn($q) => $q->where('assigned_at', '>=', $today),
                 'assignedSessions as resolved_today' => fn($q) => $q->where('status', 'resolved')
                     ->where('resolved_at', '>=', $today),
                 'activeSessions as active_chats',
             ])
-            ->with('service:id,name')
-            ->get()
+            ->with('service:id,name');
+
+        if ($serviceId) {
+            $query->where('service_id', $serviceId);
+        }
+
+        $officers = $query->get()
             ->map(function ($officer) use ($today) {
                 $avgSatisfaction = ChatSession::where('officer_id', $officer->id)
                     ->whereNotNull('satisfaction_rating')
@@ -98,13 +123,21 @@ class MonitoringController extends Controller
 
     /**
      * Get real-time queue status
+     * Officers only see queue for their assigned service
      */
-    public function queueStatus(): JsonResponse
+    public function queueStatus(Request $request): JsonResponse
     {
-        $waitingSessions = ChatSession::with(['service', 'latestMessage'])
+        $serviceId = $this->resolveServiceFilter($request);
+
+        $query = ChatSession::with(['service', 'latestMessage'])
             ->where('status', 'waiting')
-            ->orderBy('escalated_at')
-            ->get()
+            ->orderBy('escalated_at');
+
+        if ($serviceId) {
+            $query->where('service_id', $serviceId);
+        }
+
+        $waitingSessions = $query->get()
             ->map(fn($s) => [
                 'session_id' => $s->session_id,
                 'visitor_phone' => $s->visitor_phone,
@@ -133,11 +166,18 @@ class MonitoringController extends Controller
 
     /**
      * FIX #1: Session history with date filter
+     * Officers only see history for their assigned service
      */
     public function sessionHistory(Request $request): JsonResponse
     {
         $query = ChatSession::with(['service:id,name', 'officer:id,name'])
             ->where('status', 'resolved');
+
+        // Enforce service filter for officers
+        $serviceId = $this->resolveServiceFilter($request);
+        if ($serviceId) {
+            $query->where('service_id', $serviceId);
+        }
 
         // Date filters
         if ($request->has('date_from')) {
@@ -146,7 +186,7 @@ class MonitoringController extends Controller
         if ($request->has('date_to')) {
             $query->where('created_at', '<=', $request->date_to . ' 23:59:59');
         }
-        if ($request->has('service_id')) {
+        if ($request->has('service_id') && !$serviceId) {
             $query->where('service_id', $request->service_id);
         }
         if ($request->has('officer_id')) {
@@ -160,9 +200,15 @@ class MonitoringController extends Controller
 
     /**
      * FIX #2: Rating details per officer and per service
+     * Only accessible by admin users
      */
     public function ratingDetails(Request $request): JsonResponse
     {
+        // Only admin can access rating details
+        $user = $request->user();
+        if ($user->role !== 'admin') {
+            return response()->json(['message' => 'Akses ditolak. Hanya admin yang dapat melihat rating.'], 403);
+        }
         // Rating per officer
         $ratingPerOfficer = User::where('role', 'officer')
             ->with('service:id,name')
@@ -340,15 +386,20 @@ class MonitoringController extends Controller
      * Calculate average response time (in minutes)
      * Compatible with both MySQL and SQLite
      */
-    private function getAvgResponseTime(): float
+    private function getAvgResponseTime(?int $serviceId = null): float
     {
         $today = now()->startOfDay();
 
-        $sessions = ChatSession::where('status', 'resolved')
+        $query = ChatSession::where('status', 'resolved')
             ->where('resolved_at', '>=', $today)
             ->whereNotNull('escalated_at')
-            ->whereNotNull('assigned_at')
-            ->get(['escalated_at', 'assigned_at']);
+            ->whereNotNull('assigned_at');
+
+        if ($serviceId) {
+            $query->where('service_id', $serviceId);
+        }
+
+        $sessions = $query->get(['escalated_at', 'assigned_at']);
 
         if ($sessions->isEmpty()) {
             return 0;
@@ -359,5 +410,27 @@ class MonitoringController extends Controller
         });
 
         return round($totalMinutes / $sessions->count(), 1);
+    }
+
+    /**
+     * Resolve service_id filter from request.
+     * For officers: always enforce their assigned service_id (server-side security).
+     * For admin/supervisor: use the optional service_id query param.
+     */
+    private function resolveServiceFilter(Request $request): ?int
+    {
+        $user = $request->user();
+
+        // Officers are always restricted to their own service
+        if ($user && $user->role === 'officer' && $user->service_id) {
+            return (int) $user->service_id;
+        }
+
+        // Admin/Supervisor can optionally filter by service_id
+        if ($request->has('service_id') && $request->service_id) {
+            return (int) $request->service_id;
+        }
+
+        return null;
     }
 }

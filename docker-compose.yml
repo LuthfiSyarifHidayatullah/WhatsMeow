@@ -4,37 +4,37 @@ services:
   # MySQL Database
   mysql:
     image: mysql:8.0
-    container_name: mpp-mysql
+    container_name: diskominfo-mysql
     environment:
       MYSQL_ROOT_PASSWORD: secret
-      MYSQL_DATABASE: mpp_chatbot
+      MYSQL_DATABASE: diskominfo_chatbot
     ports:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
-      - mpp-network
+      - diskominfo-network
 
   # Redis (untuk cache & queue)
   redis:
     image: redis:alpine
-    container_name: mpp-redis
+    container_name: diskominfo-redis
     ports:
       - "6379:6379"
     networks:
-      - mpp-network
+      - diskominfo-network
 
   # Laravel Backend
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: mpp-backend
+    container_name: diskominfo-backend
     ports:
       - "8000:8000"
     environment:
       DB_HOST: mysql
-      DB_DATABASE: mpp_chatbot
+      DB_DATABASE: diskominfo_chatbot
       DB_USERNAME: root
       DB_PASSWORD: secret
       REDIS_HOST: redis
@@ -46,27 +46,27 @@ services:
     volumes:
       - ./backend:/app
     networks:
-      - mpp-network
+      - diskominfo-network
 
   # Vue Frontend
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: mpp-frontend
+    container_name: diskominfo-frontend
     ports:
       - "3000:80"
     depends_on:
       - backend
     networks:
-      - mpp-network
+      - diskominfo-network
 
   # Go WhatsApp Bot
   bot:
     build:
       context: ./bot
       dockerfile: Dockerfile
-    container_name: mpp-bot
+    container_name: diskominfo-bot
     ports:
       - "8080:8080"
     environment:
@@ -78,20 +78,20 @@ services:
     volumes:
       - bot_data:/app/data
     networks:
-      - mpp-network
+      - diskominfo-network
 
   # WebSocket Server (Laravel WebSockets)
   websockets:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: mpp-websockets
+    container_name: diskominfo-websockets
     command: php artisan websockets:serve
     ports:
       - "6001:6001"
     environment:
       DB_HOST: mysql
-      DB_DATABASE: mpp_chatbot
+      DB_DATABASE: diskominfo_chatbot
       DB_USERNAME: root
       DB_PASSWORD: secret
       REDIS_HOST: redis
@@ -99,12 +99,12 @@ services:
       - mysql
       - redis
     networks:
-      - mpp-network
+      - diskominfo-network
 
 volumes:
   mysql_data:
   bot_data:
 
 networks:
-  mpp-network:
+  diskominfo-network:
     driver: bridge

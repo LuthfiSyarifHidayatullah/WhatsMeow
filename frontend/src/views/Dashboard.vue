@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="mb-6">
       <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
-      <p class="text-gray-500 text-sm">Ringkasan layanan MPP hari ini</p>
+      <p class="text-gray-500 text-sm">Ringkasan layanan Diskominfo hari ini</p>
     </div>
 
     <!-- Stats Cards -->
@@ -142,6 +142,9 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import api from '../composables/useApi'
+import { useAuthStore } from '../stores/auth'
+
+const authStore = useAuthStore()
 
 const stats = ref({
   total_sessions_today: 0,
@@ -160,10 +163,16 @@ let refreshInterval = null
 
 async function fetchDashboard() {
   try {
+    // Officers only see data for their assigned service
+    const params = {}
+    if (authStore.isOfficer && authStore.user?.service_id) {
+      params.service_id = authStore.user.service_id
+    }
+
     const [dashRes, serviceRes, queueRes] = await Promise.all([
-      api.get('/monitoring/dashboard'),
-      api.get('/monitoring/services'),
-      api.get('/monitoring/queue'),
+      api.get('/monitoring/dashboard', { params }),
+      api.get('/monitoring/services', { params }),
+      api.get('/monitoring/queue', { params }),
     ])
     stats.value = dashRes.data
     serviceStats.value = serviceRes.data

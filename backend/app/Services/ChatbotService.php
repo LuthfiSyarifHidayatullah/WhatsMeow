@@ -436,7 +436,7 @@ class ChatbotService
             }
         }
 
-        $reply = "✅ Terima kasih telah menghubungi MPP Kab. Bengkayang! 🙏\n\n";
+        $reply = "✅ Terima kasih telah menghubungi Diskominfo Kab. Bengkayang! 🙏\n\n";
         $reply .= "Mohon berikan rating layanan kami (1-5):\n";
         $reply .= "1 ⭐ - Sangat Buruk\n";
         $reply .= "2 ⭐⭐ - Buruk\n";
@@ -462,7 +462,7 @@ class ChatbotService
     {
         $services = Service::where('is_active', true)->orderBy('sort_order')->get();
 
-        $reply = "🏛️ *Mall Pelayanan Publik*\n";
+        $reply = "🏛️ *Dinas Komunikasi Dan Informatika*\n";
         $reply .= "*Pemerintah Kabupaten Bengkayang*\n\n";
         $reply .= "Selamat datang! Silakan pilih layanan:\n\n";
 

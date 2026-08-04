@@ -1,7 +1,7 @@
 {
-  "name": "mpp-chatbot-frontend",
+  "name": "diskominfo-chatbot-frontend",
   "version": "1.0.0",
-  "description": "Dashboard MPP Chatbot Kab. Bengkayang",
+  "description": "Dashboard Chatbot Dinas Komunikasi Dan Informatika Kab. Bengkayang",
   "type": "module",
   "scripts": {
     "dev": "vite",

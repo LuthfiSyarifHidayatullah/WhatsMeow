@@ -178,7 +178,7 @@ class ChatSessionController extends Controller
 
         // Send notification to WhatsApp user that chat is resolved
         $reply = "✅ Percakapan telah diselesaikan oleh petugas.\n\n";
-        $reply .= "Terima kasih telah menghubungi MPP Kab. Bengkayang! 🙏\n\n";
+        $reply .= "Terima kasih telah menghubungi Diskominfo Kab. Bengkayang! 🙏\n\n";
         $reply .= "Mohon berikan rating layanan kami (1-5):\n";
         $reply .= "1 ⭐ - Sangat Buruk\n";
         $reply .= "2 ⭐⭐ - Buruk\n";
