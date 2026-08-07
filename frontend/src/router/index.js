@@ -58,6 +58,7 @@ const routes = [
         path: 'ratings',
         name: 'Ratings',
         component: () => import('../views/Ratings.vue'),
+        meta: { roles: ['admin'] },
       },
       {
         path: 'export',
@@ -84,6 +85,9 @@ router.beforeEach((to, from, next) => {
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     next('/login')
   } else if (to.meta.guest && authStore.isAuthenticated) {
+    next('/')
+  } else if (to.meta.roles && !to.meta.roles.includes(authStore.user?.role)) {
+    // Role-based access control: redirect to dashboard if user doesn't have the required role
     next('/')
   } else {
     next()

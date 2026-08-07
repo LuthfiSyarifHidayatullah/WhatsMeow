@@ -81,6 +81,9 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import api from '../composables/useApi'
+import { useAuthStore } from '../stores/auth'
+
+const authStore = useAuthStore()
 
 const officers = ref([])
 const activeSessions = ref([])
@@ -88,9 +91,15 @@ let refreshInterval = null
 
 async function fetchData() {
   try {
+    // Officers only see data for their assigned service
+    const params = {}
+    if (authStore.isOfficer && authStore.user?.service_id) {
+      params.service_id = authStore.user.service_id
+    }
+
     const [officerRes, sessionRes] = await Promise.all([
-      api.get('/monitoring/officers'),
-      api.get('/chats?status=active'),
+      api.get('/monitoring/officers', { params }),
+      api.get('/chats', { params: { status: 'active', ...params } }),
     ])
     officers.value = officerRes.data
     activeSessions.value = sessionRes.data.data || sessionRes.data

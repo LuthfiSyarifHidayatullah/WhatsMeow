@@ -4,7 +4,7 @@
     <aside class="w-64 bg-primary-900 text-white flex flex-col">
       <!-- Logo -->
       <div class="p-5 border-b border-primary-800">
-        <h1 class="text-lg font-bold">MPP Chatbot</h1>
+        <h1 class="text-lg font-bold">Diskominfo Chatbot</h1>
         <p class="text-primary-300 text-xs">Kab. Bengkayang</p>
       </div>
 
@@ -75,8 +75,12 @@ const menuItems = computed(() => {
     { path: '/live-chat', label: 'Live Chat', icon: 'ChatIcon' },
     { path: '/monitoring', label: 'Monitoring', icon: 'MonitorIcon' },
     { path: '/history', label: 'Riwayat Sesi', icon: 'HistoryIcon' },
-    { path: '/ratings', label: 'Rating', icon: 'RatingIcon' },
   ]
+
+  // Rating hanya untuk Admin
+  if (authStore.isAdmin) {
+    items.push({ path: '/ratings', label: 'Rating', icon: 'RatingIcon' })
+  }
 
   if (authStore.isAdmin || authStore.isSupervisor) {
     items.push(

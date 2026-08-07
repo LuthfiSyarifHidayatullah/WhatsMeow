@@ -12,48 +12,48 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Create Services (Layanan MPP)
+        // Create Services (Layanan Diskominfo)
         $services = [
             [
-                'name' => 'Pelayanan KTP & Kependudukan',
-                'code' => 'ktp',
-                'description' => 'Layanan pembuatan KTP, KK, Akta Kelahiran, Akta Kematian, dan dokumen kependudukan lainnya.',
-                'keywords' => ['ktp', 'kartu tanda penduduk', 'kk', 'kartu keluarga', 'akta', 'kependudukan', 'e-ktp', 'identitas'],
+                'name' => 'Pelayanan Jaringan & Infrastruktur TIK',
+                'code' => 'jaringan',
+                'description' => 'Layanan pengelolaan jaringan internet, infrastruktur TIK, dan konektivitas pemerintah daerah.',
+                'keywords' => ['jaringan', 'internet', 'wifi', 'koneksi', 'infrastruktur', 'tik', 'server', 'bandwidth'],
                 'sort_order' => 1,
             ],
             [
-                'name' => 'Pelayanan Perpajakan',
-                'code' => 'pajak',
-                'description' => 'Layanan pembayaran pajak daerah, PBB, BPHTB, dan konsultasi perpajakan.',
-                'keywords' => ['pajak', 'pbb', 'bphtb', 'tax', 'retribusi', 'npwp', 'bayar pajak'],
+                'name' => 'Pelayanan Informasi Publik',
+                'code' => 'informasi',
+                'description' => 'Layanan permintaan informasi publik, PPID, dan keterbukaan informasi.',
+                'keywords' => ['informasi', 'ppid', 'keterbukaan', 'data publik', 'transparansi', 'info publik'],
                 'sort_order' => 2,
             ],
             [
-                'name' => 'Pelayanan Kepegawaian',
-                'code' => 'pegawai',
-                'description' => 'Layanan administrasi kepegawaian, kenaikan pangkat, mutasi, dan pensiun.',
-                'keywords' => ['pegawai', 'kepegawaian', 'asn', 'pns', 'pangkat', 'mutasi', 'pensiun', 'sk'],
+                'name' => 'Pelayanan Aplikasi & E-Government',
+                'code' => 'aplikasi',
+                'description' => 'Layanan pengembangan, pemeliharaan aplikasi, dan sistem e-government.',
+                'keywords' => ['aplikasi', 'e-government', 'sistem', 'website', 'portal', 'software', 'egov'],
                 'sort_order' => 3,
             ],
             [
-                'name' => 'Pelayanan Perizinan',
-                'code' => 'izin',
-                'description' => 'Layanan pengurusan izin usaha, IMB, SIUP, dan perizinan lainnya.',
-                'keywords' => ['izin', 'perizinan', 'imb', 'siup', 'usaha', 'oss', 'nib'],
+                'name' => 'Pelayanan Persandian & Keamanan Informasi',
+                'code' => 'sandi',
+                'description' => 'Layanan persandian, keamanan informasi, dan perlindungan data.',
+                'keywords' => ['sandi', 'persandian', 'keamanan', 'security', 'data', 'enkripsi', 'cyber'],
                 'sort_order' => 4,
             ],
             [
-                'name' => 'Pelayanan Kesehatan',
-                'code' => 'kesehatan',
-                'description' => 'Layanan informasi BPJS, rujukan, dan konsultasi kesehatan masyarakat.',
-                'keywords' => ['kesehatan', 'bpjs', 'rumah sakit', 'puskesmas', 'rujukan', 'obat', 'berobat'],
+                'name' => 'Pelayanan Statistik & Data',
+                'code' => 'statistik',
+                'description' => 'Layanan pengelolaan data statistik sektoral, integrasi data, dan satu data.',
+                'keywords' => ['statistik', 'data', 'satu data', 'integrasi', 'laporan', 'sensus'],
                 'sort_order' => 5,
             ],
             [
-                'name' => 'Pelayanan Pendidikan',
-                'code' => 'pendidikan',
-                'description' => 'Layanan informasi pendaftaran sekolah, beasiswa, dan administrasi pendidikan.',
-                'keywords' => ['pendidikan', 'sekolah', 'beasiswa', 'ppdb', 'daftar sekolah', 'ijazah'],
+                'name' => 'Pelayanan Media & Komunikasi',
+                'code' => 'media',
+                'description' => 'Layanan pengelolaan media sosial pemerintah, hubungan media, dan publikasi.',
+                'keywords' => ['media', 'sosial', 'komunikasi', 'publikasi', 'pers', 'berita', 'humas'],
                 'sort_order' => 6,
             ],
         ];
@@ -64,8 +64,8 @@ class DatabaseSeeder extends Seeder
 
         // Create Admin User
         User::create([
-            'name' => 'Admin MPP',
-            'email' => 'admin@mpp-bengkayang.go.id',
+            'name' => 'Admin Diskominfo',
+            'email' => 'admin@diskominfo-bengkayang.go.id',
             'password' => Hash::make('password123'),
             'role' => 'admin',
             'is_online' => false,
@@ -73,8 +73,8 @@ class DatabaseSeeder extends Seeder
 
         // Create Supervisor
         User::create([
-            'name' => 'Supervisor MPP',
-            'email' => 'supervisor@mpp-bengkayang.go.id',
+            'name' => 'Supervisor Diskominfo',
+            'email' => 'supervisor@diskominfo-bengkayang.go.id',
             'password' => Hash::make('password123'),
             'role' => 'supervisor',
             'is_online' => false,
@@ -82,14 +82,14 @@ class DatabaseSeeder extends Seeder
 
         // Create Officers per service
         $officers = [
-            ['name' => 'Budi Santoso', 'email' => 'budi@mpp-bengkayang.go.id', 'service_code' => 'ktp'],
-            ['name' => 'Siti Rahayu', 'email' => 'siti@mpp-bengkayang.go.id', 'service_code' => 'ktp'],
-            ['name' => 'Ahmad Fauzi', 'email' => 'ahmad@mpp-bengkayang.go.id', 'service_code' => 'pajak'],
-            ['name' => 'Dewi Lestari', 'email' => 'dewi@mpp-bengkayang.go.id', 'service_code' => 'pajak'],
-            ['name' => 'Eko Prasetyo', 'email' => 'eko@mpp-bengkayang.go.id', 'service_code' => 'pegawai'],
-            ['name' => 'Fitri Handayani', 'email' => 'fitri@mpp-bengkayang.go.id', 'service_code' => 'izin'],
-            ['name' => 'Galih Prakoso', 'email' => 'galih@mpp-bengkayang.go.id', 'service_code' => 'kesehatan'],
-            ['name' => 'Hani Sulistyowati', 'email' => 'hani@mpp-bengkayang.go.id', 'service_code' => 'pendidikan'],
+            ['name' => 'Budi Santoso', 'email' => 'budi@diskominfo-bengkayang.go.id', 'service_code' => 'jaringan'],
+            ['name' => 'Siti Rahayu', 'email' => 'siti@diskominfo-bengkayang.go.id', 'service_code' => 'jaringan'],
+            ['name' => 'Ahmad Fauzi', 'email' => 'ahmad@diskominfo-bengkayang.go.id', 'service_code' => 'informasi'],
+            ['name' => 'Dewi Lestari', 'email' => 'dewi@diskominfo-bengkayang.go.id', 'service_code' => 'aplikasi'],
+            ['name' => 'Eko Prasetyo', 'email' => 'eko@diskominfo-bengkayang.go.id', 'service_code' => 'sandi'],
+            ['name' => 'Fitri Handayani', 'email' => 'fitri@diskominfo-bengkayang.go.id', 'service_code' => 'statistik'],
+            ['name' => 'Galih Prakoso', 'email' => 'galih@diskominfo-bengkayang.go.id', 'service_code' => 'media'],
+            ['name' => 'Hani Sulistyowati', 'email' => 'hani@diskominfo-bengkayang.go.id', 'service_code' => 'media'],
         ];
 
         foreach ($officers as $officerData) {
@@ -108,10 +108,10 @@ class DatabaseSeeder extends Seeder
 
         // Create Bot Responses
         $botResponses = [
-            ['trigger_keyword' => 'jam', 'response_text' => "🕐 *Jam Operasional MPP Kab. Bengkayang:*\n\nSenin - Kamis: 08.00 - 15.00 WIB\nJumat: 08.00 - 11.30 WIB\nSabtu - Minggu: Tutup\n\nLayanan online chatbot tersedia 24 jam.", 'match_type' => 'contains', 'priority' => 5],
-            ['trigger_keyword' => 'alamat', 'response_text' => "📍 *Alamat MPP Kab. Bengkayang:*\n\nJl. [Alamat MPP]\nKecamatan Bengkayang\nKabupaten Bengkayang\nKalimantan Barat\n\n📞 Telp: (0562) XXXXXX", 'match_type' => 'contains', 'priority' => 5],
-            ['trigger_keyword' => 'syarat ktp', 'response_text' => "📋 *Syarat Pembuatan KTP:*\n\n1. Fotocopy KK\n2. Surat Pengantar RT/RW\n3. Pas foto 3x4 (2 lembar)\n4. Usia minimal 17 tahun / sudah menikah\n5. Formulir yang sudah diisi\n\n⏱ Estimasi waktu: 1-3 hari kerja\n💰 Biaya: GRATIS", 'match_type' => 'contains', 'priority' => 10, 'service_id' => 1],
-            ['trigger_keyword' => 'syarat kk', 'response_text' => "📋 *Syarat Pembuatan Kartu Keluarga:*\n\n1. Surat Pengantar RT/RW\n2. Fotocopy Akta Nikah/Cerai\n3. Fotocopy KTP semua anggota keluarga\n4. Fotocopy Akta Kelahiran\n5. Formulir yang sudah diisi\n\n⏱ Estimasi waktu: 3-5 hari kerja\n💰 Biaya: GRATIS", 'match_type' => 'contains', 'priority' => 10, 'service_id' => 1],
+            ['trigger_keyword' => 'jam', 'response_text' => "🕐 *Jam Operasional Diskominfo Kab. Bengkayang:*\n\nSenin - Kamis: 08.00 - 15.00 WIB\nJumat: 08.00 - 11.30 WIB\nSabtu - Minggu: Tutup\n\nLayanan online chatbot tersedia 24 jam.", 'match_type' => 'contains', 'priority' => 5],
+            ['trigger_keyword' => 'alamat', 'response_text' => "📍 *Alamat Diskominfo Kab. Bengkayang:*\n\nJl. [Alamat Kantor Diskominfo]\nKecamatan Bengkayang\nKabupaten Bengkayang\nKalimantan Barat\n\n📞 Telp: (0562) XXXXXX", 'match_type' => 'contains', 'priority' => 5],
+            ['trigger_keyword' => 'layanan internet', 'response_text' => "📋 *Layanan Jaringan & Internet:*\n\n1. Pengajuan koneksi internet OPD\n2. Pelaporan gangguan jaringan\n3. Permintaan bandwidth\n4. Konsultasi infrastruktur TIK\n\n⏱ Estimasi penanganan: 1-3 hari kerja\n💰 Biaya: Sesuai anggaran OPD", 'match_type' => 'contains', 'priority' => 10, 'service_id' => 1],
+            ['trigger_keyword' => 'permohonan data', 'response_text' => "📋 *Permohonan Informasi Publik (PPID):*\n\n1. Mengisi formulir permohonan\n2. Menyertakan identitas pemohon\n3. Menjelaskan tujuan permohonan\n4. Menunggu verifikasi\n\n⏱ Estimasi waktu: 10 hari kerja\n💰 Biaya: GRATIS", 'match_type' => 'contains', 'priority' => 10, 'service_id' => 2],
             ['trigger_keyword' => 'terima kasih', 'response_text' => "🙏 Sama-sama! Senang bisa membantu.\n\nJika ada pertanyaan lain, jangan ragu untuk bertanya.\nKetik *menu* untuk kembali ke menu utama.", 'match_type' => 'contains', 'priority' => 1],
         ];
 

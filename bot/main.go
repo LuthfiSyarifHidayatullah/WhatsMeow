@@ -65,7 +65,7 @@ func main() {
 		}
 	}
 
-	fmt.Println("Bot MPP Kab. Bengkayang sudah aktif!")
+	fmt.Println("Bot Diskominfo Kab. Bengkayang sudah aktif!")
 
 	// Start webhook server for receiving messages from Laravel (officer replies)
 	webhookPort := os.Getenv("WEBHOOK_PORT")
