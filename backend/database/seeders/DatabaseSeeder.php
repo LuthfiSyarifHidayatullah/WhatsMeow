@@ -65,7 +65,7 @@ class DatabaseSeeder extends Seeder
         // Create Admin User
         User::create([
             'name' => 'Admin Diskominfo',
-            'email' => 'admin@diskominfo-bengkayang.go.id',
+            'email' => 'admin@mpp-bengkayang.go.id',
             'password' => Hash::make('password123'),
             'role' => 'admin',
             'is_online' => false,
@@ -74,7 +74,7 @@ class DatabaseSeeder extends Seeder
         // Create Supervisor
         User::create([
             'name' => 'Supervisor Diskominfo',
-            'email' => 'supervisor@diskominfo-bengkayang.go.id',
+            'email' => 'supervisor@mpp-bengkayang.go.id',
             'password' => Hash::make('password123'),
             'role' => 'supervisor',
             'is_online' => false,
@@ -82,14 +82,14 @@ class DatabaseSeeder extends Seeder
 
         // Create Officers per service
         $officers = [
-            ['name' => 'Budi Santoso', 'email' => 'budi@diskominfo-bengkayang.go.id', 'service_code' => 'jaringan'],
-            ['name' => 'Siti Rahayu', 'email' => 'siti@diskominfo-bengkayang.go.id', 'service_code' => 'jaringan'],
-            ['name' => 'Ahmad Fauzi', 'email' => 'ahmad@diskominfo-bengkayang.go.id', 'service_code' => 'informasi'],
-            ['name' => 'Dewi Lestari', 'email' => 'dewi@diskominfo-bengkayang.go.id', 'service_code' => 'aplikasi'],
-            ['name' => 'Eko Prasetyo', 'email' => 'eko@diskominfo-bengkayang.go.id', 'service_code' => 'sandi'],
-            ['name' => 'Fitri Handayani', 'email' => 'fitri@diskominfo-bengkayang.go.id', 'service_code' => 'statistik'],
-            ['name' => 'Galih Prakoso', 'email' => 'galih@diskominfo-bengkayang.go.id', 'service_code' => 'media'],
-            ['name' => 'Hani Sulistyowati', 'email' => 'hani@diskominfo-bengkayang.go.id', 'service_code' => 'media'],
+            ['name' => 'Budi Santoso', 'email' => 'budi@mpp-bengkayang.go.id', 'service_code' => 'jaringan'],
+            ['name' => 'Siti Rahayu', 'email' => 'siti@mpp-bengkayang.go.id', 'service_code' => 'jaringan'],
+            ['name' => 'Ahmad Fauzi', 'email' => 'ahmad@mpp-bengkayang.go.id', 'service_code' => 'informasi'],
+            ['name' => 'Dewi Lestari', 'email' => 'dewi@mpp-bengkayang.go.id', 'service_code' => 'aplikasi'],
+            ['name' => 'Eko Prasetyo', 'email' => 'eko@mpp-bengkayang.go.id', 'service_code' => 'sandi'],
+            ['name' => 'Fitri Handayani', 'email' => 'fitri@mpp-bengkayang.go.id', 'service_code' => 'statistik'],
+            ['name' => 'Galih Prakoso', 'email' => 'galih@mpp-bengkayang.go.id', 'service_code' => 'media'],
+            ['name' => 'Hani Sulistyowati', 'email' => 'hani@mpp-bengkayang.go.id', 'service_code' => 'media'],
         ];
 
         foreach ($officers as $officerData) {
