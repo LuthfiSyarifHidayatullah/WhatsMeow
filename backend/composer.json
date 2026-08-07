@@ -4,7 +4,7 @@
     "description": "MPP Kab. Bengkayang WhatsApp Chatbot Backend",
     "require": {
         "php": "^8.2",
-        "laravel/framework": "^11.0",
+        "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
         "pusher/pusher-php-server": "^7.2"
