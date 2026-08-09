@@ -61,7 +61,10 @@ class ChatbotService
     }
 
     /**
-     * FIX #1: Check if session has timed out (7 min idle)
+     * Check if session has timed out due to officer inactivity (5 min)
+     * - If officer doesn't respond within 5 minutes, auto-disconnect
+     * - Send notification to visitor to try again
+     * - Notify admin/supervisor about the timeout
      */
     private function checkAndHandleTimeout(ChatSession $session): bool
     {
@@ -80,24 +83,122 @@ class ChatbotService
 
         $minutesSinceLastMessage = now()->diffInMinutes($lastMessage->created_at);
 
-        // Auto-resolve after 7 minutes of inactivity
-        if ($minutesSinceLastMessage >= 7) {
-            $session->update([
-                'status' => 'resolved',
-                'resolved_at' => now(),
-            ]);
+        // For active chats: check if officer hasn't responded in 5 minutes
+        if ($session->status === 'active' && $minutesSinceLastMessage >= 5) {
+            // Check if the last message was from visitor (meaning officer hasn't replied)
+            $lastOfficerMessage = Message::where('chat_session_id', $session->id)
+                ->where('sender_type', 'officer')
+                ->latest()
+                ->first();
 
-            if ($session->officer_id) {
-                $officer = User::find($session->officer_id);
-                if ($officer) {
-                    $officer->decrement('current_chat_count');
-                }
+            $lastVisitorMessage = Message::where('chat_session_id', $session->id)
+                ->where('sender_type', 'visitor')
+                ->latest()
+                ->first();
+
+            // Only timeout if visitor's last message is newer than officer's (officer hasn't responded)
+            $officerInactive = !$lastOfficerMessage ||
+                ($lastVisitorMessage && $lastVisitorMessage->created_at > $lastOfficerMessage->created_at);
+
+            if ($officerInactive && $lastVisitorMessage && now()->diffInMinutes($lastVisitorMessage->created_at) >= 5) {
+                return $this->handleOfficerTimeout($session);
             }
+        }
 
-            return true;
+        // For waiting chats: timeout after 5 minutes if no officer picks up
+        if ($session->status === 'waiting' && $minutesSinceLastMessage >= 5) {
+            return $this->handleWaitingTimeout($session);
         }
 
         return false;
+    }
+
+    /**
+     * Handle officer timeout - auto-disconnect and notify visitor
+     */
+    private function handleOfficerTimeout(ChatSession $session): bool
+    {
+        $officerName = '';
+        if ($session->officer_id) {
+            $officer = User::find($session->officer_id);
+            if ($officer) {
+                $officer->decrement('current_chat_count');
+                $officerName = $officer->name;
+            }
+        }
+
+        $session->update([
+            'status' => 'resolved',
+            'resolved_at' => now(),
+        ]);
+
+        // Send message to visitor via WhatsApp
+        $reply = "⚠️ Mohon maaf, petugas tidak merespon dalam waktu 5 menit.\n\n";
+        $reply .= "Sesi percakapan Anda telah otomatis terputus.\n";
+        $reply .= "Silakan ketik *menu* untuk memulai percakapan baru dan coba hubungi kembali.\n\n";
+        $reply .= "Kami mohon maaf atas ketidaknyamanan ini. 🙏";
+
+        $this->storeMessage($session, 'bot', $reply);
+
+        // Send via WhatsApp bot
+        $botService = new \App\Services\WhatsAppBotService();
+        $botService->sendMessage($session->chat_jid, $reply);
+
+        // Notify admin/supervisor about officer timeout
+        $this->notifyAdminOfficerTimeout($session, $officerName);
+
+        return true;
+    }
+
+    /**
+     * Handle waiting timeout - no officer picked up within 5 minutes
+     */
+    private function handleWaitingTimeout(ChatSession $session): bool
+    {
+        $session->update([
+            'status' => 'resolved',
+            'resolved_at' => now(),
+        ]);
+
+        $reply = "⚠️ Mohon maaf, saat ini tidak ada petugas yang tersedia.\n\n";
+        $reply .= "Sesi percakapan Anda telah otomatis terputus karena tidak ada petugas yang merespon dalam 5 menit.\n";
+        $reply .= "Silakan ketik *menu* untuk memulai percakapan baru dan coba hubungi kembali.\n\n";
+        $reply .= "Kami mohon maaf atas ketidaknyamanan ini. 🙏";
+
+        $this->storeMessage($session, 'bot', $reply);
+
+        // Send via WhatsApp bot
+        $botService = new \App\Services\WhatsAppBotService();
+        $botService->sendMessage($session->chat_jid, $reply);
+
+        // Notify admin/supervisor
+        $this->notifyAdminOfficerTimeout($session, 'Tidak ada petugas');
+
+        return true;
+    }
+
+    /**
+     * Notify admin/supervisor about officer timeout via broadcast event
+     */
+    private function notifyAdminOfficerTimeout(ChatSession $session, string $officerName): void
+    {
+        $serviceName = $session->service ? $session->service->name : 'Umum';
+
+        // Create activity log for the timeout
+        \App\Models\ActivityLog::create([
+            'user_id' => $session->officer_id,
+            'chat_session_id' => $session->id,
+            'action' => 'officer_timeout',
+            'description' => "Petugas {$officerName} tidak merespon dalam 5 menit. Layanan: {$serviceName}. Visitor: {$session->visitor_phone}",
+            'ip_address' => '0.0.0.0',
+        ]);
+
+        // Broadcast to monitoring channel so admin/supervisor get notified in real-time
+        event(new \App\Events\NewMessageEvent(
+            $session,
+            "⚠️ TIMEOUT: Petugas {$officerName} tidak merespon chat dari {$session->visitor_phone} ({$serviceName}) dalam 5 menit.",
+            'system'
+        ));
     }
 
     /**
