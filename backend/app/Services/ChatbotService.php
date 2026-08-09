@@ -133,10 +133,9 @@ class ChatbotService
         ]);
 
         // Send message to visitor via WhatsApp
-        $reply = "⚠️ Mohon maaf, petugas tidak merespon dalam waktu 5 menit.\n\n";
-        $reply .= "Sesi percakapan Anda telah otomatis terputus.\n";
-        $reply .= "Silakan ketik *menu* untuk memulai percakapan baru dan coba hubungi kembali.\n\n";
-        $reply .= "Kami mohon maaf atas ketidaknyamanan ini. 🙏";
+        $reply = "Mohon maaf, petugas sedang tidak tersedia saat ini.\n\n";
+        $reply .= "Silakan ketik *menu* untuk menghubungi kembali.\n";
+        $reply .= "Terima kasih atas kesabaran Anda. 🙏";
 
         $this->storeMessage($session, 'bot', $reply);
 
@@ -160,10 +159,9 @@ class ChatbotService
             'resolved_at' => now(),
         ]);
 
-        $reply = "⚠️ Mohon maaf, saat ini tidak ada petugas yang tersedia.\n\n";
-        $reply .= "Sesi percakapan Anda telah otomatis terputus karena tidak ada petugas yang merespon dalam 5 menit.\n";
-        $reply .= "Silakan ketik *menu* untuk memulai percakapan baru dan coba hubungi kembali.\n\n";
-        $reply .= "Kami mohon maaf atas ketidaknyamanan ini. 🙏";
+        $reply = "Mohon maaf, saat ini tidak ada petugas yang tersedia.\n\n";
+        $reply .= "Silakan ketik *menu* untuk menghubungi kembali.\n";
+        $reply .= "Terima kasih atas kesabaran Anda. 🙏";
 
         $this->storeMessage($session, 'bot', $reply);
 
