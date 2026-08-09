@@ -532,13 +532,13 @@ class ChatbotService
             ->whereColumn('current_chat_count', '<', 'max_concurrent_chats');
 
         if ($serviceId) {
-            $officer = (clone $query)->where('service_id', $serviceId)
+            // Hanya cari officer yang sesuai layanannya
+            return (clone $query)->where('service_id', $serviceId)
                 ->orderBy('current_chat_count')
                 ->first();
-
-            if ($officer) return $officer;
         }
 
+        // Jika tidak ada service_id (chat umum), baru cari siapa saja yang tersedia
         return $query->orderBy('current_chat_count')->first();
     }
 
