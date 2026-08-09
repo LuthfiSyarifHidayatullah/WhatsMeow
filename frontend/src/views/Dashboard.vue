@@ -102,6 +102,60 @@
       </div>
     </div>
 
+    <!-- Recent Chats (for officers and admin) -->
+    <div v-if="recentChats.length > 0" class="card mb-6">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-lg font-semibold text-gray-900">Chat Terbaru</h3>
+        <router-link to="/live-chat" class="text-sm text-primary-600 hover:text-primary-800">
+          Lihat Semua →
+        </router-link>
+      </div>
+      <div class="space-y-2">
+        <div
+          v-for="chat in recentChats"
+          :key="chat.session_id"
+          class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 cursor-pointer border border-gray-100"
+          @click="$router.push(`/live-chat/${chat.session_id}`)"
+        >
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center"
+              :class="{
+                'bg-green-100': chat.status === 'active',
+                'bg-yellow-100': chat.status === 'waiting',
+                'bg-gray-100': chat.status === 'resolved'
+              }"
+            >
+              <svg class="w-5 h-5"
+                :class="{
+                  'text-green-600': chat.status === 'active',
+                  'text-yellow-600': chat.status === 'waiting',
+                  'text-gray-500': chat.status === 'resolved'
+                }"
+                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-900">{{ chat.visitor_name || chat.visitor_phone }}</p>
+              <p class="text-xs text-gray-500">{{ chat.service?.name || 'Umum' }}</p>
+              <p class="text-xs text-gray-400 mt-0.5">{{ chat.latest_message?.content?.substring(0, 50) }}{{ chat.latest_message?.content?.length > 50 ? '...' : '' }}</p>
+            </div>
+          </div>
+          <div class="flex flex-col items-end space-y-1">
+            <span class="badge text-xs"
+              :class="{
+                'badge-active': chat.status === 'active',
+                'badge-waiting': chat.status === 'waiting',
+                'badge-resolved': chat.status === 'resolved'
+              }"
+            >
+              {{ chat.status === 'active' ? 'Aktif' : chat.status === 'waiting' ? 'Menunggu' : 'Selesai' }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Service Statistics -->
     <div class="card">
       <h3 class="text-lg font-semibold text-gray-900 mb-4">Statistik Per Layanan</h3>
@@ -159,6 +213,7 @@ const stats = ref({
 })
 const serviceStats = ref([])
 const queue = ref([])
+const recentChats = ref([])
 let refreshInterval = null
 
 async function fetchDashboard() {
@@ -169,14 +224,21 @@ async function fetchDashboard() {
       params.service_id = authStore.user.service_id
     }
 
-    const [dashRes, serviceRes, queueRes] = await Promise.all([
+    const [dashRes, serviceRes, queueRes, chatsRes] = await Promise.all([
       api.get('/monitoring/dashboard', { params }),
       api.get('/monitoring/services', { params }),
       api.get('/monitoring/queue', { params }),
+      api.get('/chats', { params: { ...params } }),
     ])
     stats.value = dashRes.data
     serviceStats.value = serviceRes.data
     queue.value = queueRes.data
+
+    // Show recent chats (active + waiting, max 5)
+    const allChats = chatsRes.data.data || chatsRes.data
+    recentChats.value = allChats
+      .filter(c => c.status === 'active' || c.status === 'waiting')
+      .slice(0, 5)
   } catch (e) {
     console.error('Failed to fetch dashboard:', e)
   }
