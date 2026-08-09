@@ -211,6 +211,16 @@ class ChatbotService
             return null;
         }
 
+        // If user already has an active/bot/waiting session, don't treat as rating
+        // This prevents menu number selections from being interpreted as ratings
+        $activeSession = ChatSession::where('visitor_phone', $sender)
+            ->whereIn('status', ['bot', 'waiting', 'active'])
+            ->first();
+
+        if ($activeSession) {
+            return null;
+        }
+
         // Find recently resolved session (within 5 minutes) without a rating
         $session = ChatSession::where('visitor_phone', $sender)
             ->where('status', 'resolved')
