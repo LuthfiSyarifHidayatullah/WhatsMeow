@@ -498,6 +498,11 @@ class ChatbotService
      */
     private function handleWaitingMode(ChatSession $session, string $text): array
     {
+        // Save first visitor message as topic if not set yet
+        if (empty($session->topic)) {
+            $session->update(['topic' => mb_substr($text, 0, 255)]);
+        }
+
         event(new NewMessageEvent($session, $text, 'visitor'));
 
         return [
@@ -516,6 +521,11 @@ class ChatbotService
 
         if (in_array($lowerText, ['selesai', 'terima kasih', 'done'])) {
             return $this->resolveSession($session);
+        }
+
+        // Save first visitor message as topic if not set yet
+        if (empty($session->topic)) {
+            $session->update(['topic' => mb_substr($text, 0, 255)]);
         }
 
         event(new NewMessageEvent($session, $text, 'visitor'));

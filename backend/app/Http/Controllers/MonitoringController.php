@@ -305,21 +305,45 @@ class MonitoringController extends Controller
             $endDate = now();
         }
 
-        $topics = ChatSession::where('created_at', '>=', $startDate)
+        // Get topics from the 'topic' field OR from first visitor message if topic is empty
+        $sessions = ChatSession::where('created_at', '>=', $startDate)
             ->where('created_at', '<=', $endDate)
-            ->whereNotNull('topic')
-            ->where('topic', '!=', '')
-            ->select('topic', 'service_id')
-            ->with('service:id,name')
-            ->get()
-            ->groupBy('topic')
-            ->map(function ($group, $topic) {
-                return [
+            ->with(['service:id,name', 'messages' => function ($q) {
+                $q->where('sender_type', 'visitor')->orderBy('created_at')->limit(1);
+            }])
+            ->get();
+
+        $topicCounts = [];
+        foreach ($sessions as $session) {
+            // Use 'topic' field if available, otherwise use first visitor message
+            $topic = $session->topic;
+            if (empty($topic)) {
+                $firstMessage = $session->messages->first();
+                if ($firstMessage) {
+                    $topic = $firstMessage->content;
+                }
+            }
+
+            if (empty($topic)) {
+                continue;
+            }
+
+            // Truncate long messages to make them groupable
+            $topic = mb_substr($topic, 0, 100);
+
+            $key = strtolower(trim($topic));
+            if (!isset($topicCounts[$key])) {
+                $topicCounts[$key] = [
                     'topic' => $topic,
-                    'count' => $group->count(),
-                    'service' => $group->first()->service?->name ?? '-',
+                    'count' => 0,
+                    'service' => $session->service?->name ?? '-',
                 ];
-            })
+            }
+            $topicCounts[$key]['count']++;
+        }
+
+        // Sort by count descending
+        $topics = collect(array_values($topicCounts))
             ->sortByDesc('count')
             ->values();
 
