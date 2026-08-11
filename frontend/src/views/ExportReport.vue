@@ -7,10 +7,10 @@
 
     <!-- Export Options -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-      <!-- Topik Terbanyak -->
+      <!-- Pelayanan Terbanyak Dicari -->
       <div class="card">
-        <h3 class="text-lg font-semibold mb-3">📊 Topik Terbanyak Ditanyakan</h3>
-        <p class="text-sm text-gray-500 mb-4">Rekapan topik/pertanyaan paling sering dari pengunjung</p>
+        <h3 class="text-lg font-semibold mb-3">📊 Pelayanan Paling Sering Dicari</h3>
+        <p class="text-sm text-gray-500 mb-4">Rekapan pelayanan yang paling sering digunakan pengunjung</p>
         <div class="flex gap-2 mb-3">
           <button @click="loadReport('topics', 'week')" :class="period === 'week' && type === 'topics' ? 'btn-primary' : 'btn-secondary'" class="text-xs">Minggu Ini</button>
           <button @click="loadReport('topics', 'month')" :class="period === 'month' && type === 'topics' ? 'btn-primary' : 'btn-secondary'" class="text-xs">Bulan Ini</button>
@@ -22,7 +22,7 @@
           <button @click="loadReportCustom('topics')" class="btn-secondary text-xs">Custom</button>
         </div>
         <button v-if="reportData && type === 'topics'" @click="downloadExcel('topics')" class="btn-success text-sm w-full">
-          📥 Download Excel - Topik
+          📥 Download Excel - Pelayanan
         </button>
       </div>
 
@@ -62,23 +62,18 @@
           <thead>
             <tr class="border-b border-gray-200">
               <th class="text-left py-2 px-3 font-medium text-gray-600">No</th>
-              <th class="text-left py-2 px-3 font-medium text-gray-600">Topik</th>
-              <th class="text-left py-2 px-3 font-medium text-gray-600">Layanan</th>
-              <th class="text-center py-2 px-3 font-medium text-gray-600">Jumlah</th>
+              <th class="text-left py-2 px-3 font-medium text-gray-600">Pelayanan</th>
+              <th class="text-center py-2 px-3 font-medium text-gray-600">Total Dicari</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(item, idx) in reportData.data.slice(0, 20)" :key="idx" class="border-b border-gray-100">
+            <tr v-for="(item, idx) in reportData.data" :key="idx" class="border-b border-gray-100">
               <td class="py-2 px-3 text-gray-500">{{ idx + 1 }}</td>
-              <td class="py-2 px-3 font-medium">{{ item.topic }}</td>
-              <td class="py-2 px-3 text-gray-600">{{ item.service }}</td>
-              <td class="py-2 px-3 text-center font-bold">{{ item.count }}</td>
+              <td class="py-2 px-3 font-medium">{{ item.layanan }}</td>
+              <td class="py-2 px-3 text-center font-bold">{{ item.total_dicari }}</td>
             </tr>
           </tbody>
         </table>
-        <p v-if="reportData.data.length > 20" class="text-center text-gray-400 text-xs mt-2">
-          Menampilkan 20 dari {{ reportData.data.length }} data. Download Excel untuk data lengkap.
-        </p>
       </div>
 
       <!-- Ratings Preview -->
@@ -149,11 +144,11 @@ function downloadExcel(reportType) {
   let filename = ''
 
   if (reportType === 'topics') {
-    csvContent = 'No,Topik,Layanan,Jumlah\n'
+    csvContent = 'No,Pelayanan,Total Dicari\n'
     data.forEach((item, idx) => {
-      csvContent += `${idx + 1},"${item.topic}","${item.service}",${item.count}\n`
+      csvContent += `${idx + 1},"${item.layanan}",${item.total_dicari}\n`
     })
-    filename = `laporan-topik-${period.value}-${new Date().toISOString().slice(0, 10)}.csv`
+    filename = `laporan-pelayanan-${period.value}-${new Date().toISOString().slice(0, 10)}.csv`
   } else {
     csvContent = 'Tanggal,Visitor,Layanan,Petugas,Rating,Topik\n'
     data.forEach(item => {
