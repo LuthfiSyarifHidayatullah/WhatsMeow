@@ -305,47 +305,19 @@ class MonitoringController extends Controller
             $endDate = now();
         }
 
-        // Get topics from the 'topic' field OR from first visitor message if topic is empty
-        $sessions = ChatSession::where('created_at', '>=', $startDate)
-            ->where('created_at', '<=', $endDate)
-            ->with(['service:id,name', 'messages' => function ($q) {
-                $q->where('sender_type', 'visitor')->orderBy('created_at')->limit(1);
+        // Hitung pelayanan yang paling sering dicari/digunakan
+        $services = Service::where('is_active', true)
+            ->withCount(['chatSessions as total_dicari' => function ($q) use ($startDate, $endDate) {
+                $q->where('created_at', '>=', $startDate)
+                  ->where('created_at', '<=', $endDate);
             }])
-            ->get();
-
-        $topicCounts = [];
-        foreach ($sessions as $session) {
-            // Use 'topic' field if available, otherwise use first visitor message
-            $topic = $session->topic;
-            if (empty($topic)) {
-                $firstMessage = $session->messages->first();
-                if ($firstMessage) {
-                    $topic = $firstMessage->content;
-                }
-            }
-
-            if (empty($topic)) {
-                continue;
-            }
-
-            // Truncate long messages to make them groupable
-            $topic = mb_substr($topic, 0, 100);
-
-            $key = strtolower(trim($topic));
-            if (!isset($topicCounts[$key])) {
-                $topicCounts[$key] = [
-                    'topic' => $topic,
-                    'count' => 0,
-                    'service' => $session->service?->name ?? '-',
-                ];
-            }
-            $topicCounts[$key]['count']++;
-        }
-
-        // Sort by count descending
-        $topics = collect(array_values($topicCounts))
-            ->sortByDesc('count')
-            ->values();
+            ->get()
+            ->sortByDesc('total_dicari')
+            ->values()
+            ->map(fn($s) => [
+                'layanan' => $s->name,
+                'total_dicari' => $s->total_dicari,
+            ]);
 
         $summary = [
             'period' => $period,
@@ -357,7 +329,7 @@ class MonitoringController extends Controller
 
         return response()->json([
             'summary' => $summary,
-            'data' => $topics,
+            'data' => $services,
         ]);
     }
 
