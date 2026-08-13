@@ -70,6 +70,11 @@ const routes = [
         name: 'ActivityLogs',
         component: () => import('../views/ActivityLogs.vue'),
       },
+      {
+        path: 'bookings',
+        name: 'Bookings',
+        component: () => import('../views/Bookings.vue'),
+      },
     ],
   },
 ]
