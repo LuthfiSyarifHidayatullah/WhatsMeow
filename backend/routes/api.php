@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BotController;
 use App\Http\Controllers\BotResponseController;
 use App\Http\Controllers\ChatSessionController;
@@ -62,4 +63,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Bot Response Management
     Route::apiResource('bot-responses', BotResponseController::class);
+
+    // Booking/Schedule Management
+    Route::apiResource('bookings', BookingController::class);
 });
