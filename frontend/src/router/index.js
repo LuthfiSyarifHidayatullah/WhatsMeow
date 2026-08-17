@@ -75,6 +75,11 @@ const routes = [
         name: 'Bookings',
         component: () => import('../views/Bookings.vue'),
       },
+      {
+        path: 'notifications',
+        name: 'Notifications',
+        component: () => import('../views/Notifications.vue'),
+      },
     ],
   },
 ]
