@@ -96,23 +96,23 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
-        // Bot Responses - hanya formulir (link GForm) per layanan
+        // Bot Responses - formulir (link GForm) per layanan + instruksi konfirmasi
         // Ganti [LINK_GFORM_xxx] dengan link Google Form yang sebenarnya
         $botResponses = [
             ['trigger_keyword' => 'formulir', 'service_id' => 1, 'match_type' => 'exact', 'priority' => 10,
-             'response_text' => "📝 *Formulir Pengajuan Domain*\n\nSilakan isi formulir pengajuan melalui link berikut:\n\n🔗 [LINK_GFORM_DOMAIN]\n\nSetelah mengisi formulir, petugas akan memproses pengajuan Anda dalam 3-5 hari kerja."],
+             'response_text' => "📝 *Formulir Pengajuan Domain*\n\nSilakan isi formulir pengajuan melalui link berikut:\n\n🔗 [LINK_GFORM_DOMAIN]\n\nSetelah mengisi formulir, petugas akan memproses pengajuan Anda dalam 3-5 hari kerja.\n\n✅ *Setelah mengisi formulir, ketik 3 untuk konfirmasi ke petugas bahwa Anda sudah mengajukan.*"],
 
             ['trigger_keyword' => 'formulir', 'service_id' => 2, 'match_type' => 'exact', 'priority' => 10,
-             'response_text' => "📝 *Formulir Pengajuan Zoom Meeting*\n\nSilakan isi formulir pengajuan melalui link berikut:\n\n🔗 [LINK_GFORM_ZOOM]\n\nPastikan mengajukan minimal H-2 hari kerja sebelum kegiatan."],
+             'response_text' => "📝 *Formulir Pengajuan Zoom Meeting*\n\nSilakan isi formulir pengajuan melalui link berikut:\n\n🔗 [LINK_GFORM_ZOOM]\n\nPastikan mengajukan minimal H-2 hari kerja sebelum kegiatan.\n\n✅ *Setelah mengisi formulir, ketik 3 untuk konfirmasi ke petugas bahwa Anda sudah mengajukan.*"],
 
             ['trigger_keyword' => 'formulir', 'service_id' => 3, 'match_type' => 'exact', 'priority' => 10,
-             'response_text' => "📝 *Formulir Pengajuan Fasilitasi Dokumentasi*\n\nSilakan isi formulir pengajuan melalui link berikut:\n\n🔗 [LINK_GFORM_DOKUMENTASI]\n\nPastikan mengajukan minimal H-3 hari kerja sebelum kegiatan."],
+             'response_text' => "📝 *Formulir Pengajuan Fasilitasi Dokumentasi*\n\nSilakan isi formulir pengajuan melalui link berikut:\n\n🔗 [LINK_GFORM_DOKUMENTASI]\n\nPastikan mengajukan minimal H-3 hari kerja sebelum kegiatan.\n\n✅ *Setelah mengisi formulir, ketik 3 untuk konfirmasi ke petugas bahwa Anda sudah mengajukan.*"],
 
             ['trigger_keyword' => 'formulir', 'service_id' => 4, 'match_type' => 'exact', 'priority' => 10,
-             'response_text' => "📝 *Formulir Pengajuan TTE*\n\nSilakan isi formulir pengajuan melalui link berikut:\n\n🔗 [LINK_GFORM_TTE]\n\nPastikan melengkapi persyaratan dokumen yang diperlukan."],
+             'response_text' => "📝 *Formulir Pengajuan TTE*\n\nSilakan isi formulir pengajuan melalui link berikut:\n\n🔗 [LINK_GFORM_TTE]\n\nPastikan melengkapi persyaratan dokumen yang diperlukan.\n\n✅ *Setelah mengisi formulir, ketik 3 untuk konfirmasi ke petugas bahwa Anda sudah mengajukan.*"],
 
             ['trigger_keyword' => 'formulir', 'service_id' => 5, 'match_type' => 'exact', 'priority' => 10,
-             'response_text' => "📝 *Formulir Pengajuan Peminjaman Alat & Operator*\n\nSilakan isi formulir pengajuan melalui link berikut:\n\n🔗 [LINK_GFORM_ALAT]\n\nPastikan mengajukan minimal H-3 hari kerja sebelum kegiatan."],
+             'response_text' => "📝 *Formulir Pengajuan Peminjaman Alat & Operator*\n\nSilakan isi formulir pengajuan melalui link berikut:\n\n🔗 [LINK_GFORM_ALAT]\n\nPastikan mengajukan minimal H-3 hari kerja sebelum kegiatan.\n\n✅ *Setelah mengisi formulir, ketik 3 untuk konfirmasi ke petugas bahwa Anda sudah mengajukan.*"],
         ];
 
         foreach ($botResponses as $responseData) {
