@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Booking;
 use App\Models\BotResponse;
 use App\Models\ChatSession;
 use App\Models\Message;
@@ -33,7 +34,7 @@ class ChatbotService
             'items' => [
                 1 => ['label' => 'Persyaratan', 'action' => 'info', 'key' => 'persyaratan'],
                 2 => ['label' => 'Prosedur Pelayanan', 'action' => 'info', 'key' => 'prosedur'],
-                3 => ['label' => 'Informasi Jadwal dan Ketersediaan', 'action' => 'info', 'key' => 'jadwal'],
+                3 => ['label' => 'Informasi Jadwal dan Ketersediaan', 'action' => 'schedule'],
                 4 => ['label' => 'Formulir Pengajuan Jadwal', 'action' => 'info', 'key' => 'formulir'],
                 5 => ['label' => 'Bantuan/Gangguan', 'action' => 'info', 'key' => 'bantuan'],
                 6 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
@@ -66,7 +67,7 @@ class ChatbotService
             'items' => [
                 1 => ['label' => 'Persyaratan', 'action' => 'info', 'key' => 'persyaratan'],
                 2 => ['label' => 'Prosedur Peminjaman', 'action' => 'info', 'key' => 'prosedur'],
-                3 => ['label' => 'Daftar Alat Tersedia', 'action' => 'info', 'key' => 'daftar_alat'],
+                3 => ['label' => 'Jadwal Pemakaian Alat', 'action' => 'schedule'],
                 4 => ['label' => 'Formulir Pengajuan Peminjaman', 'action' => 'info', 'key' => 'formulir'],
                 5 => ['label' => 'Bantuan/Gangguan', 'action' => 'info', 'key' => 'bantuan'],
                 6 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
@@ -200,8 +201,72 @@ class ChatbotService
             return $this->escalateToOfficer($session, $session->service_id);
         }
 
+        // Show real-time schedule from bookings table
+        if ($item['action'] === 'schedule') {
+            return $this->showSchedule($session, $service);
+        }
+
         // Show info from bot_responses
         return $this->showSubMenuInfo($session, $service, $item);
+    }
+
+    /**
+     * Show real-time schedule from bookings table (30 days ahead)
+     */
+    private function showSchedule(ChatSession $session, Service $service): array
+    {
+        $bookings = Booking::where('service_id', $service->id)
+            ->where('status', 'confirmed')
+            ->where('date', '>=', now()->startOfDay())
+            ->where('date', '<=', now()->addDays(30)->endOfDay())
+            ->orderBy('date')
+            ->orderBy('start_time')
+            ->get();
+
+        if ($bookings->isEmpty()) {
+            $reply = "📅 *Jadwal {$service->name}*\n\n";
+            $reply .= "Tidak ada jadwal kegiatan dalam 30 hari ke depan.\n";
+            $reply .= "Semua ruangan/alat tersedia untuk digunakan.";
+        } else {
+            $reply = "📅 *Jadwal {$service->name}*\n";
+            $reply .= "_(30 hari ke depan)_\n\n";
+
+            $grouped = $bookings->groupBy(fn($b) => $b->date->format('Y-m-d'));
+
+            $count = 0;
+            foreach ($grouped as $date => $dayBookings) {
+                if ($count >= 10) {
+                    $remaining = $grouped->count() - 10;
+                    $reply .= "\n_...dan {$remaining} hari lainnya._\n";
+                    $reply .= "_Hubungi petugas untuk jadwal lengkap._";
+                    break;
+                }
+
+                $carbonDate = \Carbon\Carbon::parse($date);
+                $dayLabel = $carbonDate->isToday() ? 'Hari Ini' : ($carbonDate->isTomorrow() ? 'Besok' : $carbonDate->translatedFormat('l'));
+                $reply .= "📆 *{$dayLabel}, {$carbonDate->format('d/m/Y')}*\n";
+
+                foreach ($dayBookings as $booking) {
+                    $time = substr($booking->start_time, 0, 5) . ' - ' . substr($booking->end_time, 0, 5);
+                    $reply .= "• {$time} WIB | {$booking->title}\n";
+                    $reply .= "  📍 {$booking->location} | {$booking->booked_by}\n";
+                }
+                $reply .= "\n";
+                $count++;
+            }
+        }
+
+        $reply .= "\n---\n";
+        $reply .= "Ketik *9* untuk kembali\n";
+        $reply .= "Ketik *0* untuk menu utama";
+
+        $this->storeMessage($session, 'bot', $reply);
+        return [
+            'reply' => $reply,
+            'action' => 'bot_reply',
+            'session_id' => $session->session_id,
+            'service_id' => $service->id,
+        ];
     }
 
     /**
