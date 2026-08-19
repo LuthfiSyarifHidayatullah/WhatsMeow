@@ -119,7 +119,7 @@ class ChatbotService
         }
 
         // Direct escalation
-        if (in_array($lowerText, ['petugas', 'operator', 'live chat'])) {
+        if (in_array($lowerText, ['petugas', 'operator', 'live chat', 'konfirmasi'])) {
             return $this->escalateToOfficer($session, $session->service_id);
         }
 
@@ -200,7 +200,7 @@ class ChatbotService
     }
 
     /**
-     * Show formulir link then immediately escalate to officer
+     * Show formulir link, then wait for visitor to confirm before escalating
      */
     private function showFormulirThenEscalate(ChatSession $session, Service $service, array $item): array
     {
@@ -218,11 +218,16 @@ class ChatbotService
             $reply .= "Silakan hubungi petugas untuk informasi lebih lanjut.";
         }
 
-        // Send formulir info first
-        $this->storeMessage($session, 'bot', $reply);
+        $reply .= "\n\n---\n";
+        $reply .= "Setelah mengisi formulir, ketik *konfirmasi* untuk terhubung ke petugas.";
 
-        // Then immediately escalate to officer
-        return $this->escalateToOfficer($session, $session->service_id);
+        $this->storeMessage($session, 'bot', $reply);
+        return [
+            'reply' => $reply,
+            'action' => 'bot_reply',
+            'session_id' => $session->session_id,
+            'service_id' => $service->id,
+        ];
     }
 
     /**
