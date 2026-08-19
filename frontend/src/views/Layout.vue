@@ -75,6 +75,7 @@ const menuItems = computed(() => {
     { path: '/live-chat', label: 'Live Chat', icon: 'ChatIcon' },
     { path: '/monitoring', label: 'Monitoring', icon: 'MonitorIcon' },
     { path: '/bookings', label: 'Jadwal', icon: 'CalendarIcon' },
+    { path: '/notifications', label: 'Notifikasi', icon: 'BellIcon' },
     { path: '/history', label: 'Riwayat Sesi', icon: 'HistoryIcon' },
   ]
 
