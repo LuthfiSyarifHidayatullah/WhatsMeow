@@ -175,6 +175,10 @@ class ChatbotService
 
         $menuDef = $this->serviceMenus[$service->code] ?? null;
         if (!$menuDef || !isset($menuDef['items'][$number])) {
+            // Angka 3 = konfirmasi/hubungi petugas (shortcut)
+            if ($number === 3) {
+                return $this->escalateToOfficer($session, $session->service_id);
+            }
             return $this->getServiceSubMenu($session);
         }
 
@@ -219,7 +223,7 @@ class ChatbotService
         }
 
         $reply .= "\n\n---\n";
-        $reply .= "Setelah mengisi formulir, ketik *konfirmasi* untuk terhubung ke petugas.";
+        $reply .= "Setelah mengisi formulir, ketik *3* atau *konfirmasi* untuk terhubung ke petugas.";
 
         $this->storeMessage($session, 'bot', $reply);
         return [
