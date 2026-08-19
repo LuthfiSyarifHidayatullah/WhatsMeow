@@ -66,6 +66,12 @@
             <p class="text-xs text-gray-400 mt-1">{{ message.length }}/4096 karakter</p>
           </div>
 
+          <!-- Include Rating -->
+          <div class="mb-4 flex items-center">
+            <input v-model="includeRating" type="checkbox" id="includeRating" class="mr-2 rounded" />
+            <label for="includeRating" class="text-sm text-gray-700">Sertakan permintaan rating (case sudah selesai)</label>
+          </div>
+
           <!-- Error -->
           <div v-if="error" class="mb-4 bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-sm">
             {{ error }}
@@ -118,6 +124,7 @@ const visitorResults = ref([])
 const selectedVisitor = ref(null)
 const templates = ref([])
 const message = ref('')
+const includeRating = ref(true)
 const sending = ref(false)
 const error = ref('')
 const success = ref('')
@@ -159,6 +166,7 @@ async function sendNotification() {
       chat_jid: selectedVisitor.value.chat_jid,
       visitor_phone: selectedVisitor.value.visitor_phone,
       message: message.value,
+      include_rating: includeRating.value,
     })
     success.value = 'Notifikasi berhasil dikirim ke ' + (selectedVisitor.value.visitor_name || selectedVisitor.value.visitor_phone)
     message.value = ''

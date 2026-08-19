@@ -446,12 +446,7 @@ class ChatbotService
         }
 
         $reply = "✅ Terima kasih telah menghubungi Diskominfo Kab. Bengkayang! 🙏\n\n";
-        $reply .= "Mohon berikan rating layanan kami (1-5):\n";
-        $reply .= "1 ⭐ - Sangat Buruk\n";
-        $reply .= "2 ⭐⭐ - Buruk\n";
-        $reply .= "3 ⭐⭐⭐ - Cukup\n";
-        $reply .= "4 ⭐⭐⭐⭐ - Baik\n";
-        $reply .= "5 ⭐⭐⭐⭐⭐ - Sangat Baik\n\n";
+        $reply .= "Pengajuan Anda sedang diproses. Kami akan memberitahu setelah selesai.\n";
         $reply .= "Ketik *menu* untuk memulai percakapan baru.";
 
         $this->storeMessage($session, 'bot', $reply);
