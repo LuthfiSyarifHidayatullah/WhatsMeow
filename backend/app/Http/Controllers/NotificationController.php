@@ -20,13 +20,40 @@ class NotificationController extends Controller
             'chat_jid' => 'required|string',
             'visitor_phone' => 'required|string',
             'message' => 'required|string|max:4096',
+            'include_rating' => 'nullable|boolean',
         ]);
 
+        // Append rating request if included
+        $messageToSend = $request->message;
+        if ($request->get('include_rating', true)) {
+            $messageToSend .= "\n\n---\n";
+            $messageToSend .= "Mohon berikan rating layanan kami (1-5):\n";
+            $messageToSend .= "1 ⭐ - Sangat Buruk\n";
+            $messageToSend .= "2 ⭐⭐ - Buruk\n";
+            $messageToSend .= "3 ⭐⭐⭐ - Cukup\n";
+            $messageToSend .= "4 ⭐⭐⭐⭐ - Baik\n";
+            $messageToSend .= "5 ⭐⭐⭐⭐⭐ - Sangat Baik";
+        }
+
         $botService = new WhatsAppBotService();
-        $success = $botService->sendMessage($request->chat_jid, $request->message);
+        $success = $botService->sendMessage($request->chat_jid, $messageToSend);
 
         if (!$success) {
             return response()->json(['message' => 'Gagal mengirim notifikasi. Bot mungkin tidak aktif.'], 500);
+        }
+
+        // Mark the latest resolved session for this visitor as awaiting rating
+        if ($request->get('include_rating', true)) {
+            $session = ChatSession::where('visitor_phone', $request->visitor_phone)
+                ->where('status', 'resolved')
+                ->whereNull('satisfaction_rating')
+                ->latest()
+                ->first();
+
+            if ($session) {
+                // Reset resolved_at to now so the 5-minute rating window starts fresh
+                $session->update(['resolved_at' => now()]);
+            }
         }
 
         // Log activity
