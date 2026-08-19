@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ChatSession;
 use App\Models\Message;
 use App\Models\ActivityLog;
+use App\Models\Service;
 use App\Services\WhatsAppBotService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -42,17 +43,19 @@ class NotificationController extends Controller
             return response()->json(['message' => 'Gagal mengirim notifikasi. Bot mungkin tidak aktif.'], 500);
         }
 
-        // Mark the latest resolved session for this visitor as awaiting rating
+        // Mark session as awaiting rating - use chat_jid for matching (more reliable than phone)
         if ($request->get('include_rating', true)) {
-            $session = ChatSession::where('visitor_phone', $request->visitor_phone)
+            $session = ChatSession::where('chat_jid', $request->chat_jid)
                 ->where('status', 'resolved')
-                ->whereNull('satisfaction_rating')
                 ->latest()
                 ->first();
 
             if ($session) {
-                // Reset resolved_at to now so the 5-minute rating window starts fresh
-                $session->update(['resolved_at' => now()]);
+                // Reset resolved_at to now and clear rating so the window starts fresh
+                $session->update([
+                    'resolved_at' => now(),
+                    'satisfaction_rating' => null,
+                ]);
             }
         }
 
@@ -68,15 +71,21 @@ class NotificationController extends Controller
     }
 
     /**
-     * Get list of visitors (from recent chat sessions) for notification target
+     * Get list of visitors grouped by service for easy selection
      */
     public function visitors(Request $request): JsonResponse
     {
-        $query = ChatSession::select('visitor_phone', 'chat_jid', 'visitor_name')
+        $query = ChatSession::with('service:id,name')
             ->whereNotNull('chat_jid')
             ->where('chat_jid', '!=', '');
 
-        if ($request->has('search')) {
+        // Filter by service
+        if ($request->has('service_id') && $request->service_id) {
+            $query->where('service_id', $request->service_id);
+        }
+
+        // Search
+        if ($request->has('search') && $request->search) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('visitor_phone', 'like', "%{$search}%")
@@ -84,17 +93,32 @@ class NotificationController extends Controller
             });
         }
 
-        $visitors = $query->groupBy('visitor_phone', 'chat_jid', 'visitor_name')
-            ->latest()
-            ->limit(20)
+        // Get unique visitors with their latest session info
+        $visitors = $query->latest()
             ->get()
-            ->map(fn($v) => [
-                'visitor_phone' => $v->visitor_phone,
-                'chat_jid' => $v->chat_jid,
-                'visitor_name' => $v->visitor_name,
-            ]);
+            ->unique('chat_jid')
+            ->take(30)
+            ->map(fn($s) => [
+                'visitor_phone' => $s->visitor_phone,
+                'chat_jid' => $s->chat_jid,
+                'visitor_name' => $s->visitor_name,
+                'service_name' => $s->service?->name ?? '-',
+                'service_id' => $s->service_id,
+                'status' => $s->status,
+                'last_contact' => $s->updated_at?->diffForHumans(),
+            ])
+            ->values();
 
         return response()->json($visitors);
+    }
+
+    /**
+     * Get available services for filter dropdown
+     */
+    public function services(): JsonResponse
+    {
+        $services = Service::where('is_active', true)->orderBy('sort_order')->get(['id', 'name']);
+        return response()->json($services);
     }
 
     /**

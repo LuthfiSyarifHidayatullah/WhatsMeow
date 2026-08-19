@@ -458,7 +458,7 @@ class ChatbotService
         ChatSession::where('visitor_phone', $sender)
             ->where('status', 'resolved')
             ->whereNull('satisfaction_rating')
-            ->where('resolved_at', '<', now()->subMinutes(5))
+            ->where('resolved_at', '<', now()->subMinutes(30))
             ->update(['satisfaction_rating' => 0]);
     }
 
@@ -471,10 +471,11 @@ class ChatbotService
             ->whereIn('status', ['bot', 'waiting', 'active'])->first();
         if ($activeSession) return null;
 
+        // Find session awaiting rating (within 30 minutes of notification being sent)
         $session = ChatSession::where('visitor_phone', $sender)
             ->where('status', 'resolved')
             ->whereNull('satisfaction_rating')
-            ->where('resolved_at', '>=', now()->subMinutes(5))
+            ->where('resolved_at', '>=', now()->subMinutes(30))
             ->latest()->first();
         if (!$session) return null;
 
