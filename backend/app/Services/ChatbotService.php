@@ -21,7 +21,7 @@ class ChatbotService
         'domain' => [
             'title' => 'Domain Bengkayang.go.id',
             'items' => [
-                1 => ['label' => 'Formulir Pengajuan', 'action' => 'info', 'key' => 'formulir'],
+                1 => ['label' => 'Formulir Pengajuan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
                 2 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
             ],
         ],
@@ -29,7 +29,7 @@ class ChatbotService
             'title' => 'Zoom Meeting/Video Conference',
             'items' => [
                 1 => ['label' => 'Informasi Jadwal', 'action' => 'schedule'],
-                2 => ['label' => 'Formulir Pengajuan', 'action' => 'info', 'key' => 'formulir'],
+                2 => ['label' => 'Formulir Pengajuan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
                 3 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
             ],
         ],
@@ -37,7 +37,7 @@ class ChatbotService
             'title' => 'Fasilitasi Dokumentasi Kegiatan',
             'items' => [
                 1 => ['label' => 'Informasi Jadwal', 'action' => 'schedule'],
-                2 => ['label' => 'Formulir Pengajuan', 'action' => 'info', 'key' => 'formulir'],
+                2 => ['label' => 'Formulir Pengajuan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
                 3 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
             ],
         ],
@@ -45,7 +45,7 @@ class ChatbotService
             'title' => 'Tanda Tangan Elektronik (TTE)',
             'items' => [
                 1 => ['label' => 'Informasi Jadwal', 'action' => 'schedule'],
-                2 => ['label' => 'Formulir Pengajuan', 'action' => 'info', 'key' => 'formulir'],
+                2 => ['label' => 'Formulir Pengajuan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
                 3 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
             ],
         ],
@@ -53,7 +53,7 @@ class ChatbotService
             'title' => 'Alat dan Operator Kegiatan',
             'items' => [
                 1 => ['label' => 'Informasi Jadwal', 'action' => 'schedule'],
-                2 => ['label' => 'Formulir Pengajuan', 'action' => 'info', 'key' => 'formulir'],
+                2 => ['label' => 'Formulir Pengajuan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
                 3 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
             ],
         ],
@@ -119,7 +119,7 @@ class ChatbotService
         }
 
         // Direct escalation
-        if (in_array($lowerText, ['petugas', 'operator', 'live chat'])) {
+        if (in_array($lowerText, ['petugas', 'operator', 'live chat', 'konfirmasi'])) {
             return $this->escalateToOfficer($session, $session->service_id);
         }
 
@@ -185,6 +185,11 @@ class ChatbotService
             return $this->escalateToOfficer($session, $session->service_id);
         }
 
+        // Show formulir link then escalate to officer
+        if ($item['action'] === 'formulir_then_escalate') {
+            return $this->showFormulirThenEscalate($session, $service, $item);
+        }
+
         // Show real-time schedule from bookings table
         if ($item['action'] === 'schedule') {
             return $this->showSchedule($session, $service);
@@ -192,6 +197,37 @@ class ChatbotService
 
         // Show info from bot_responses
         return $this->showSubMenuInfo($session, $service, $item);
+    }
+
+    /**
+     * Show formulir link, then wait for visitor to confirm before escalating
+     */
+    private function showFormulirThenEscalate(ChatSession $session, Service $service, array $item): array
+    {
+        $key = $item['key'];
+        $botResponse = BotResponse::where('service_id', $service->id)
+            ->where('trigger_keyword', $key)
+            ->where('is_active', true)
+            ->first();
+
+        if ($botResponse) {
+            $reply = $botResponse->response_text;
+        } else {
+            $reply = "📝 *Formulir Pengajuan {$service->name}*\n\n";
+            $reply .= "Silakan isi formulir pengajuan. Link formulir belum tersedia.\n";
+            $reply .= "Silakan hubungi petugas untuk informasi lebih lanjut.";
+        }
+
+        $reply .= "\n\n---\n";
+        $reply .= "Setelah mengisi formulir, ketik *konfirmasi* untuk terhubung ke petugas.";
+
+        $this->storeMessage($session, 'bot', $reply);
+        return [
+            'reply' => $reply,
+            'action' => 'bot_reply',
+            'session_id' => $session->session_id,
+            'service_id' => $service->id,
+        ];
     }
 
     /**
