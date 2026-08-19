@@ -43,7 +43,20 @@ class NotificationController extends Controller
             return response()->json(['message' => 'Gagal mengirim notifikasi. Bot mungkin tidak aktif.'], 500);
         }
 
-        // Mark session as awaiting rating - use chat_jid for matching (more reliable than phone)
+        // Resolve any active/bot/waiting session for this visitor
+        $activeSessions = ChatSession::where('chat_jid', $request->chat_jid)
+            ->whereIn('status', ['bot', 'waiting', 'active'])
+            ->get();
+
+        foreach ($activeSessions as $activeSession) {
+            if ($activeSession->officer_id) {
+                $officer = \App\Models\User::find($activeSession->officer_id);
+                if ($officer) $officer->decrement('current_chat_count');
+            }
+            $activeSession->update(['status' => 'resolved', 'resolved_at' => now()]);
+        }
+
+        // Mark session as awaiting rating - use chat_jid for matching
         if ($request->get('include_rating', true)) {
             $session = ChatSession::where('chat_jid', $request->chat_jid)
                 ->where('status', 'resolved')
@@ -51,7 +64,6 @@ class NotificationController extends Controller
                 ->first();
 
             if ($session) {
-                // Reset resolved_at to now and clear rating so the window starts fresh
                 $session->update([
                     'resolved_at' => now(),
                     'satisfaction_rating' => null,

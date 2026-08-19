@@ -21,9 +21,8 @@ class ChatbotService
         'domain' => [
             'title' => 'Domain Bengkayang.go.id',
             'items' => [
-                1 => ['label' => 'Informasi Jadwal', 'action' => 'schedule'],
-                2 => ['label' => 'Formulir Pengajuan', 'action' => 'info', 'key' => 'formulir'],
-                3 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
+                1 => ['label' => 'Formulir Pengajuan', 'action' => 'info', 'key' => 'formulir'],
+                2 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
             ],
         ],
         'zoom' => [
