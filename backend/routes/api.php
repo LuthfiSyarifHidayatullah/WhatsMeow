@@ -72,6 +72,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('notifications')->group(function () {
         Route::post('/send', [NotificationController::class, 'send']);
         Route::get('/visitors', [NotificationController::class, 'visitors']);
+        Route::get('/services', [NotificationController::class, 'services']);
         Route::get('/templates', [NotificationController::class, 'templates']);
     });
 });
