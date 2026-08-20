@@ -11,7 +11,7 @@
     <div class="flex gap-3 mb-4">
       <select v-model="filterLocation" class="input-field text-sm w-44">
         <option value="">Semua Ruangan</option>
-        <option value="Media Center">Media Center</option>
+        <option value="Pusat Media">Pusat Media</option>
         <option value="Podcast">Podcast</option>
       </select>
       <input v-model="filterDateFrom" type="date" class="input-field text-sm" />
@@ -39,7 +39,7 @@
               <td class="py-3 px-3">{{ b.start_time?.substring(0,5) }} - {{ b.end_time?.substring(0,5) }}</td>
               <td class="py-3 px-3 font-medium">{{ b.title }}</td>
               <td class="py-3 px-3 text-gray-600">{{ b.booked_by }}</td>
-              <td class="py-3 px-3"><span class="badge" :class="b.location === 'Media Center' ? 'badge-active' : 'badge-waiting'">{{ b.location }}</span></td>
+              <td class="py-3 px-3"><span class="badge" :class="b.location === 'Pusat Media' ? 'badge-active' : 'badge-waiting'">{{ b.location }}</span></td>
               <td class="py-3 px-3 text-gray-600 text-xs">{{ b.pic_name || '-' }}</td>
               <td class="py-3 px-3 text-center"><button @click="deleteBooking(b.id)" class="text-red-500 hover:text-red-700 text-xs">Hapus</button></td>
             </tr>
@@ -64,7 +64,7 @@
           <div><label class="block text-sm font-medium text-gray-700 mb-1">OPD / Instansi</label><input v-model="form.booked_by" class="input-field text-sm" required /></div>
           <div class="grid grid-cols-2 gap-3">
             <div><label class="block text-sm font-medium text-gray-700 mb-1">Tanggal</label><input v-model="form.date" type="date" class="input-field text-sm" required /></div>
-            <div><label class="block text-sm font-medium text-gray-700 mb-1">Ruangan</label><select v-model="form.location" class="input-field text-sm" required><option value="Media Center">Media Center</option><option value="Podcast">Podcast</option></select></div>
+            <div><label class="block text-sm font-medium text-gray-700 mb-1">Ruangan</label><select v-model="form.location" class="input-field text-sm" required><option value="Pusat Media">Pusat Media</option><option value="Podcast">Podcast</option></select></div>
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div><label class="block text-sm font-medium text-gray-700 mb-1">Jam Mulai</label><input v-model="form.start_time" type="time" class="input-field text-sm" required /></div>
@@ -97,7 +97,7 @@ const formError = ref('')
 const filterLocation = ref('')
 const filterDateFrom = ref('')
 const filterDateTo = ref('')
-const form = reactive({ service_id: '', title: '', booked_by: '', date: '', start_time: '', end_time: '', location: 'Media Center', pic_name: '', pic_phone: '' })
+const form = reactive({ service_id: '', title: '', booked_by: '', date: '', start_time: '', end_time: '', location: 'Pusat Media', pic_name: '', pic_phone: '' })
 
 function formatDate(d) { return d ? new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-' }
 
