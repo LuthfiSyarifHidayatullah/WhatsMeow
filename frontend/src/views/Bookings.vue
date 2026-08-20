@@ -3,7 +3,7 @@
     <div class="flex items-center justify-between mb-6">
       <div>
         <h1 class="text-2xl font-bold text-gray-900">Kelola Jadwal</h1>
-        <p class="text-gray-500 text-sm">Jadwal penggunaan ruangan dan peminjaman alat</p>
+        <p class="text-gray-500 text-sm">{{ subtitle }}</p>
       </div>
       <button @click="showForm = true" class="btn-primary text-sm">+ Tambah Jadwal</button>
     </div>
@@ -29,6 +29,7 @@
               <th class="text-left py-3 px-3 font-medium text-gray-600">Kegiatan</th>
               <th class="text-left py-3 px-3 font-medium text-gray-600">OPD</th>
               <th class="text-left py-3 px-3 font-medium text-gray-600">Ruangan</th>
+              <th class="text-left py-3 px-3 font-medium text-gray-600">Layanan</th>
               <th class="text-left py-3 px-3 font-medium text-gray-600">PJ</th>
               <th class="text-center py-3 px-3 font-medium text-gray-600">Aksi</th>
             </tr>
@@ -40,10 +41,11 @@
               <td class="py-3 px-3 font-medium">{{ b.title }}</td>
               <td class="py-3 px-3 text-gray-600">{{ b.booked_by }}</td>
               <td class="py-3 px-3"><span class="badge" :class="b.location === 'Pusat Media' ? 'badge-active' : 'badge-waiting'">{{ b.location }}</span></td>
+              <td class="py-3 px-3 text-gray-600 text-xs">{{ b.service?.name || '-' }}</td>
               <td class="py-3 px-3 text-gray-600 text-xs">{{ b.pic_name || '-' }}</td>
               <td class="py-3 px-3 text-center"><button @click="deleteBooking(b.id)" class="text-red-500 hover:text-red-700 text-xs">Hapus</button></td>
             </tr>
-            <tr v-if="bookings.length === 0"><td colspan="7" class="py-8 text-center text-gray-400">Belum ada jadwal</td></tr>
+            <tr v-if="bookings.length === 0"><td colspan="8" class="py-8 text-center text-gray-400">Belum ada jadwal</td></tr>
           </tbody>
         </table>
       </div>
@@ -54,12 +56,18 @@
       <div class="bg-white rounded-xl p-6 w-full max-w-lg">
         <h3 class="text-lg font-semibold mb-4">Tambah Jadwal Baru</h3>
         <form @submit.prevent="createBooking" class="space-y-3">
-          <div>
+          <!-- Layanan: officer hanya bisa pilih layanannya sendiri -->
+          <div v-if="availableServices.length > 1">
             <label class="block text-sm font-medium text-gray-700 mb-1">Layanan</label>
             <select v-model="form.service_id" class="input-field text-sm" required>
-              <option v-for="s in services" :key="s.id" :value="s.id">{{ s.name }}</option>
+              <option v-for="s in availableServices" :key="s.id" :value="s.id">{{ s.name }}</option>
             </select>
           </div>
+          <div v-else>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Layanan</label>
+            <input :value="availableServices[0]?.name" class="input-field text-sm bg-gray-100" disabled />
+          </div>
+
           <div><label class="block text-sm font-medium text-gray-700 mb-1">Nama Kegiatan</label><input v-model="form.title" class="input-field text-sm" required /></div>
           <div><label class="block text-sm font-medium text-gray-700 mb-1">OPD / Instansi</label><input v-model="form.booked_by" class="input-field text-sm" required /></div>
           <div class="grid grid-cols-2 gap-3">
@@ -98,11 +106,14 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import api from '../composables/useApi'
+import { useAuthStore } from '../stores/auth'
+
+const authStore = useAuthStore()
 
 const bookings = ref([])
-const services = ref([])
+const allServices = ref([])
 const showForm = ref(false)
 const formLoading = ref(false)
 const formError = ref('')
@@ -118,10 +129,31 @@ for (let h = 7; h <= 17; h++) {
   if (h < 17) timeOptions.push(`${String(h).padStart(2, '0')}:30`)
 }
 
+// Officer hanya bisa kelola jadwal sesuai layanannya
+const availableServices = computed(() => {
+  if (authStore.isOfficer && authStore.user?.service_id) {
+    return allServices.value.filter(s => s.id === authStore.user.service_id)
+  }
+  return allServices.value
+})
+
+// Subtitle sesuai layanan officer
+const subtitle = computed(() => {
+  if (authStore.isOfficer && authStore.user?.service_id) {
+    const svc = allServices.value.find(s => s.id === authStore.user.service_id)
+    return svc ? `Jadwal pelayanan ${svc.name}` : 'Jadwal pelayanan Anda'
+  }
+  return 'Jadwal semua pelayanan'
+})
+
 function formatDate(d) { return d ? new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-' }
 
 async function fetchBookings() {
   const params = {}
+  // Officer hanya lihat jadwal layanannya
+  if (authStore.isOfficer && authStore.user?.service_id) {
+    params.service_id = authStore.user.service_id
+  }
   if (filterLocation.value) params.location = filterLocation.value
   if (filterDateFrom.value) params.date_from = filterDateFrom.value
   if (filterDateTo.value) params.date_to = filterDateTo.value
@@ -129,10 +161,22 @@ async function fetchBookings() {
   bookings.value = res.data.data || res.data
 }
 
-async function fetchServices() { const res = await api.get('/services'); services.value = res.data.data || res.data }
+async function fetchServices() {
+  const res = await api.get('/services')
+  allServices.value = res.data.data || res.data
+
+  // Set default service_id for officer
+  if (authStore.isOfficer && authStore.user?.service_id) {
+    form.service_id = authStore.user.service_id
+  }
+}
 
 async function createBooking() {
   formLoading.value = true; formError.value = ''
+  // Force service_id for officer
+  if (authStore.isOfficer && authStore.user?.service_id) {
+    form.service_id = authStore.user.service_id
+  }
   try {
     await api.post('/bookings', form)
     showForm.value = false
