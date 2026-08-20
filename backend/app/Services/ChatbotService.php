@@ -73,6 +73,9 @@ class ChatbotService
 
         $session = $this->getOrCreateSession($sender, $chatJID);
 
+        // Refresh session from database (officer might have accepted/changed status since last message)
+        $session->refresh();
+
         if ($this->checkAndHandleTimeout($session)) {
             $session = $this->getOrCreateSession($sender, $chatJID);
         }
@@ -551,13 +554,25 @@ class ChatbotService
     {
         if (!in_array($session->status, ['active', 'waiting'])) return false;
 
+        // Don't timeout if session was just assigned (officer just accepted)
+        if ($session->status === 'active' && $session->assigned_at && now()->diffInMinutes($session->assigned_at) < 5) {
+            return false;
+        }
+
         $lastMessage = Message::where('chat_session_id', $session->id)->latest()->first();
         if (!$lastMessage) return false;
 
         $minutesSinceLastMessage = now()->diffInMinutes($lastMessage->created_at);
 
         if ($session->status === 'active' && $minutesSinceLastMessage >= 5) {
+            // Check if officer has sent any message AFTER accepting
             $lastOfficerMessage = Message::where('chat_session_id', $session->id)->where('sender_type', 'officer')->latest()->first();
+
+            // If officer has replied recently (within 5 min), don't timeout
+            if ($lastOfficerMessage && now()->diffInMinutes($lastOfficerMessage->created_at) < 5) {
+                return false;
+            }
+
             $lastVisitorMessage = Message::where('chat_session_id', $session->id)->where('sender_type', 'visitor')->latest()->first();
             $officerInactive = !$lastOfficerMessage || ($lastVisitorMessage && $lastVisitorMessage->created_at > $lastOfficerMessage->created_at);
             if ($officerInactive && $lastVisitorMessage && now()->diffInMinutes($lastVisitorMessage->created_at) >= 5) {
