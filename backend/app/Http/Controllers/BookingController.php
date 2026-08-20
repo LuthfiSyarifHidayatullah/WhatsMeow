@@ -11,7 +11,15 @@ class BookingController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = Booking::with(['service:id,name', 'creator:id,name']);
-        if ($request->has('service_id')) $query->where('service_id', $request->service_id);
+
+        // Officer hanya lihat jadwal layanannya
+        $user = $request->user();
+        if ($user->role === 'officer' && $user->service_id) {
+            $query->where('service_id', $user->service_id);
+        } elseif ($request->has('service_id')) {
+            $query->where('service_id', $request->service_id);
+        }
+
         if ($request->has('location')) $query->where('location', $request->location);
         if ($request->has('date_from')) $query->where('date', '>=', $request->date_from);
         if ($request->has('date_to')) $query->where('date', '<=', $request->date_to);
@@ -30,6 +38,12 @@ class BookingController extends Controller
             'end_time' => 'required',
             'location' => 'required|string',
         ]);
+
+        // Officer hanya bisa tambah jadwal untuk layanannya sendiri
+        $user = $request->user();
+        if ($user->role === 'officer' && $user->service_id && (int)$request->service_id !== (int)$user->service_id) {
+            return response()->json(['message' => 'Anda hanya bisa menambah jadwal untuk layanan Anda sendiri.'], 403);
+        }
 
         // Parse time to H:i format (handle both 24h and 12h formats)
         $startTime = date('H:i', strtotime($request->start_time));
