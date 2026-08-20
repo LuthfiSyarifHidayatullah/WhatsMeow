@@ -26,16 +26,24 @@ class BookingController extends Controller
             'title' => 'required|string|max:255',
             'booked_by' => 'required|string|max:255',
             'date' => 'required|date|after_or_equal:today',
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
-            'location' => 'required|string|in:Media Center,Podcast',
+            'start_time' => 'required',
+            'end_time' => 'required',
+            'location' => 'required|string',
         ]);
+
+        // Parse time to H:i format (handle both 24h and 12h formats)
+        $startTime = date('H:i', strtotime($request->start_time));
+        $endTime = date('H:i', strtotime($request->end_time));
+
+        if ($endTime <= $startTime) {
+            return response()->json(['message' => 'Jam selesai harus setelah jam mulai.'], 422);
+        }
 
         // Check conflict
         $conflict = Booking::where('date', $request->date)
             ->where('location', $request->location)->where('status', 'confirmed')
-            ->where(function ($q) use ($request) {
-                $q->where('start_time', '<', $request->end_time)->where('end_time', '>', $request->start_time);
+            ->where(function ($q) use ($startTime, $endTime) {
+                $q->where('start_time', '<', $endTime)->where('end_time', '>', $startTime);
             })->exists();
 
         if ($conflict) {
@@ -43,7 +51,9 @@ class BookingController extends Controller
         }
 
         $booking = Booking::create([
-            ...$request->only(['service_id', 'title', 'booked_by', 'pic_name', 'pic_phone', 'date', 'start_time', 'end_time', 'location', 'notes']),
+            ...$request->only(['service_id', 'title', 'booked_by', 'pic_name', 'pic_phone', 'date', 'location', 'notes']),
+            'start_time' => $startTime,
+            'end_time' => $endTime,
             'created_by' => $request->user()->id,
         ]);
 
