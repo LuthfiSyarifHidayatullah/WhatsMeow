@@ -67,8 +67,20 @@
             <div><label class="block text-sm font-medium text-gray-700 mb-1">Ruangan</label><select v-model="form.location" class="input-field text-sm" required><option value="Pusat Media">Pusat Media</option><option value="Podcast">Podcast</option></select></div>
           </div>
           <div class="grid grid-cols-2 gap-3">
-            <div><label class="block text-sm font-medium text-gray-700 mb-1">Jam Mulai</label><input v-model="form.start_time" type="time" class="input-field text-sm" required /></div>
-            <div><label class="block text-sm font-medium text-gray-700 mb-1">Jam Selesai</label><input v-model="form.end_time" type="time" class="input-field text-sm" required /></div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Jam Mulai</label>
+              <select v-model="form.start_time" class="input-field text-sm" required>
+                <option value="">Pilih jam</option>
+                <option v-for="t in timeOptions" :key="'s'+t" :value="t">{{ t }} WIB</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Jam Selesai</label>
+              <select v-model="form.end_time" class="input-field text-sm" required>
+                <option value="">Pilih jam</option>
+                <option v-for="t in timeOptions" :key="'e'+t" :value="t">{{ t }} WIB</option>
+              </select>
+            </div>
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div><label class="block text-sm font-medium text-gray-700 mb-1">Penanggung Jawab</label><input v-model="form.pic_name" class="input-field text-sm" /></div>
@@ -98,6 +110,13 @@ const filterLocation = ref('')
 const filterDateFrom = ref('')
 const filterDateTo = ref('')
 const form = reactive({ service_id: '', title: '', booked_by: '', date: '', start_time: '', end_time: '', location: 'Pusat Media', pic_name: '', pic_phone: '' })
+
+// Generate time options dari 07:00 sampai 17:00 (interval 30 menit)
+const timeOptions = []
+for (let h = 7; h <= 17; h++) {
+  timeOptions.push(`${String(h).padStart(2, '0')}:00`)
+  if (h < 17) timeOptions.push(`${String(h).padStart(2, '0')}:30`)
+}
 
 function formatDate(d) { return d ? new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-' }
 
