@@ -33,6 +33,35 @@ class BotController extends Controller
     }
 
     /**
+     * Handle incoming media (image/document) from WhatsApp bot
+     */
+    public function incomingMedia(Request $request): JsonResponse
+    {
+        $request->validate([
+            'sender' => 'required|string',
+            'chat_jid' => 'required|string',
+            'media_type' => 'required|string|in:image,document',
+            'file' => 'required|file|max:20480', // max 20MB
+            'caption' => 'nullable|string',
+        ]);
+
+        // Store the uploaded file
+        $file = $request->file('file');
+        $path = $file->store('chat-media', 'public');
+        $mediaUrl = '/storage/' . $path;
+
+        $result = $this->chatbotService->processIncomingMedia(
+            $request->sender,
+            $request->chat_jid,
+            $request->media_type,
+            $request->caption ?? '',
+            $mediaUrl,
+        );
+
+        return response()->json($result);
+    }
+
+    /**
      * Handle message status update from bot
      */
     public function messageStatus(Request $request): JsonResponse

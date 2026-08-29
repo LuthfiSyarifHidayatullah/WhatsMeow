@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Route;
 // Bot webhook (from Go WhatsApp service)
 Route::prefix('bot')->middleware('bot.auth')->group(function () {
     Route::post('/incoming', [BotController::class, 'incoming']);
+    Route::post('/incoming-media', [BotController::class, 'incomingMedia']);
     Route::post('/message-status', [BotController::class, 'messageStatus']);
 });
 

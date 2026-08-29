@@ -670,4 +670,36 @@ class ChatbotService
     {
         return ['reply' => "Maaf, terjadi kesalahan. Silakan ketik *menu* untuk memulai.", 'action' => 'bot_reply', 'session_id' => null];
     }
+
+    /**
+     * Process incoming media (image/document) from visitor
+     */
+    public function processIncomingMedia(string $sender, string $chatJID, string $mediaType, string $caption, string $mediaUrl): array
+    {
+        $session = $this->getOrCreateSession($sender, $chatJID);
+        $session->refresh();
+
+        // Store media message
+        $content = $caption ?: ($mediaType === 'image' ? '[Gambar]' : '[Dokumen]');
+        Message::create([
+            'chat_session_id' => $session->id,
+            'sender_type' => 'visitor',
+            'content' => $content,
+            'content_type' => $mediaType,
+            'media_url' => $mediaUrl,
+        ]);
+
+        // If session is active or waiting, forward to officer (broadcast for real-time)
+        if (in_array($session->status, ['active', 'waiting'])) {
+            event(new NewMessageEvent($session, $content, 'visitor'));
+            return ['reply' => '', 'action' => 'forward_to_officer', 'session_id' => $session->session_id];
+        }
+
+        // If in bot mode, ask visitor to choose a service first
+        $reply = "Terima kasih, file Anda sudah kami terima. 📎\n\n";
+        $reply .= "Namun, silakan pilih layanan terlebih dahulu atau ketik *petugas* untuk terhubung dengan petugas kami.";
+        $this->storeMessage($session, 'bot', $reply);
+
+        return ['reply' => $reply, 'action' => 'bot_reply', 'session_id' => $session->session_id];
+    }
 }
