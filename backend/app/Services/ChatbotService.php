@@ -76,9 +76,9 @@ class ChatbotService
         // Refresh session from database (officer might have accepted/changed status since last message)
         $session->refresh();
 
-        if ($this->checkAndHandleTimeout($session)) {
-            $session = $this->getOrCreateSession($sender, $chatJID);
-        }
+        // NOTE: Timeout tidak dicek di sini. Pesan masuk dari visitor = visitor aktif,
+        // jadi tidak boleh di-timeout. Timeout hanya ditangani oleh scheduler
+        // (command chat:check-timeout yang jalan setiap menit).
 
         $this->storeMessage($session, 'visitor', $text);
 
