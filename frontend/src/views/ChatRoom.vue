@@ -144,12 +144,12 @@ function formatTime(date) {
   return new Date(date).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
 }
 
-// Build full media URL (backend serves from /storage)
+// Build media URL - /storage di-proxy ke backend oleh Vite (dev)
 function mediaUrl(path) {
   if (!path) return ''
   if (path.startsWith('http')) return path
-  const base = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '')
-  return base + path
+  // Path relative (mis: /storage/chat-media/xxx.jpg) - lewat proxy Vite
+  return path
 }
 
 async function sendMessage() {
