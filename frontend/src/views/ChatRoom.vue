@@ -48,7 +48,18 @@
         :class="messageAlignment(msg.sender_type)"
       >
         <div :class="messageBubbleClass(msg.sender_type)" class="max-w-md rounded-2xl px-4 py-2.5">
-          <p class="text-sm whitespace-pre-wrap">{{ msg.content }}</p>
+          <!-- Image message -->
+          <a v-if="msg.content_type === 'image' && msg.media_url" :href="mediaUrl(msg.media_url)" target="_blank" class="block mb-1">
+            <img :src="mediaUrl(msg.media_url)" alt="Gambar" class="rounded-lg max-w-full max-h-64 object-cover" />
+          </a>
+          <!-- Document message -->
+          <a v-else-if="msg.content_type === 'document' && msg.media_url" :href="mediaUrl(msg.media_url)" target="_blank" class="flex items-center gap-2 mb-1 underline">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <span class="text-sm">Lihat Dokumen</span>
+          </a>
+          <p v-if="msg.content && msg.content !== '[Gambar]' && msg.content !== '[Dokumen]'" class="text-sm whitespace-pre-wrap">{{ msg.content }}</p>
           <p class="text-xs mt-1 opacity-60">
             {{ formatTime(msg.created_at) }}
             <span v-if="msg.sender_type === 'officer'" class="ml-1">- {{ msg.sender_user?.name || 'Petugas' }}</span>
@@ -131,6 +142,14 @@ function messageBubbleClass(type) {
 function formatTime(date) {
   if (!date) return ''
   return new Date(date).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+}
+
+// Build full media URL (backend serves from /storage)
+function mediaUrl(path) {
+  if (!path) return ''
+  if (path.startsWith('http')) return path
+  const base = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '')
+  return base + path
 }
 
 async function sendMessage() {

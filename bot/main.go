@@ -91,6 +91,21 @@ func eventHandler(evt interface{}) {
 }
 
 func handleMessage(msg *events.Message) {
+	sender := msg.Info.Sender.String()
+	chatJID := msg.Info.Chat.String()
+
+	// Handle image message
+	if img := msg.Message.GetImageMessage(); img != nil {
+		handleMediaMessage(msg, sender, chatJID, "image", img.GetCaption())
+		return
+	}
+
+	// Handle document message
+	if doc := msg.Message.GetDocumentMessage(); doc != nil {
+		handleMediaMessage(msg, sender, chatJID, "document", doc.GetCaption())
+		return
+	}
+
 	// Get text from message
 	text := ""
 	if msg.Message.GetConversation() != "" {
@@ -103,9 +118,6 @@ func handleMessage(msg *events.Message) {
 		return
 	}
 
-	sender := msg.Info.Sender.String()
-	chatJID := msg.Info.Chat.String()
-
 	fmt.Printf("[MSG] From: %s | Text: %s\n", sender, text)
 
 	// Process message through chatbot logic
@@ -113,6 +125,49 @@ func handleMessage(msg *events.Message) {
 
 	if response != "" {
 		sendMessage(msg, response)
+	}
+}
+
+// handleMediaMessage downloads media from WhatsApp and uploads to Laravel
+func handleMediaMessage(msg *events.Message, sender, chatJID, mediaType, caption string) {
+	fmt.Printf("[MEDIA] From: %s | Type: %s\n", sender, mediaType)
+
+	var data []byte
+	var err error
+	var fileName string
+	var mimeType string
+
+	if mediaType == "image" {
+		img := msg.Message.GetImageMessage()
+		data, err = client.Download(context.Background(), img)
+		mimeType = img.GetMimetype()
+		fileName = "image_" + msg.Info.ID + ".jpg"
+	} else {
+		doc := msg.Message.GetDocumentMessage()
+		data, err = client.Download(context.Background(), doc)
+		mimeType = doc.GetMimetype()
+		fileName = doc.GetFileName()
+		if fileName == "" {
+			fileName = "document_" + msg.Info.ID
+		}
+	}
+
+	if err != nil {
+		fmt.Printf("[ERROR] Failed to download media: %v\n", err)
+		sendMessage(msg, "Maaf, gagal memproses file yang Anda kirim. Silakan coba lagi.")
+		return
+	}
+
+	// Upload media to Laravel and process
+	response, err := apiClient.ProcessIncomingMedia(sender, chatJID, mediaType, caption, fileName, mimeType, data)
+	if err != nil {
+		fmt.Printf("[ERROR] Failed to process media: %v\n", err)
+		sendMessage(msg, "Maaf, terjadi kesalahan saat memproses file. Silakan coba lagi.")
+		return
+	}
+
+	if response.Reply != "" {
+		sendMessage(msg, response.Reply)
 	}
 }
 
