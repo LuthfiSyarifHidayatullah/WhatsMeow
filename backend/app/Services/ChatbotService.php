@@ -338,8 +338,7 @@ class ChatbotService
         $services = Service::where('is_active', true)->orderBy('sort_order')->get();
 
         $reply = "📋 *SISTEM INFORMASI PELAYANAN*\n";
-        $reply .= "*DINAS KOMUNIKASI DAN INFORMATIKA*\n";
-        $reply .= "*KABUPATEN BENGKAYANG*\n\n";
+        $reply .= "*PEMERINTAH KABUPATEN BENGKAYANG*\n\n";
         $reply .= "Silakan pilih pelayanan:\n\n";
 
         foreach ($services as $index => $service) {
@@ -487,7 +486,7 @@ class ChatbotService
             if ($officer) $officer->decrement('current_chat_count');
         }
 
-        $reply = "✅ Terima kasih telah menghubungi Diskominfo Kab. Bengkayang! 🙏\n\n";
+        $reply = "✅ Terima kasih telah menghubungi Pemerintah Kabupaten Bengkayang! 🙏\n\n";
         $reply .= "Pengajuan Anda sedang diproses. Kami akan memberitahu setelah selesai.\n";
         $reply .= "Ketik *menu* untuk memulai percakapan baru.";
 

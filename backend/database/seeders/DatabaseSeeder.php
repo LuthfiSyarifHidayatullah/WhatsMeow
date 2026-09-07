@@ -12,7 +12,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Create Services (5 Pelayanan Diskominfo)
+        // Create Services (5 Pelayanan Kabupaten Bengkayang)
         $services = [
             [
                 'name' => 'Domain Bengkayang.go.id',
@@ -57,7 +57,7 @@ class DatabaseSeeder extends Seeder
 
         // Create Admin User
         User::create([
-            'name' => 'Admin Diskominfo',
+            'name' => 'Admin Bengkayang',
             'email' => 'admin@mpp-bengkayang.go.id',
             'password' => Hash::make('password123'),
             'role' => 'admin',
@@ -66,7 +66,7 @@ class DatabaseSeeder extends Seeder
 
         // Create Supervisor
         User::create([
-            'name' => 'Supervisor Diskominfo',
+            'name' => 'Supervisor Bengkayang',
             'email' => 'supervisor@mpp-bengkayang.go.id',
             'password' => Hash::make('password123'),
             'role' => 'supervisor',

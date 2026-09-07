@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| API Routes - MPP Chatbot Kab. Bengkayang
+| API Routes - Siap Bengkayang (Kabupaten Bengkayang)
 |--------------------------------------------------------------------------
 */
 

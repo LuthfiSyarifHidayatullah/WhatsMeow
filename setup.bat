@@ -4,7 +4,7 @@ setlocal EnableDelayedExpansion
 
 echo.
 echo ============================================
-echo   MPP Chatbot Kab. Bengkayang - SETUP
+echo   Siap Bengkayang - SETUP
 echo ============================================
 echo.
 echo   PASTIKAN INTERNET AKTIF!

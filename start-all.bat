@@ -2,7 +2,7 @@
 chcp 65001 >nul 2>&1
 
 echo ============================================
-echo   Diskominfo Chatbot - Start All Services
+echo   Siap Bengkayang - Start All Services
 echo ============================================
 echo.
 

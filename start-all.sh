@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ============================================================
-# Diskominfo Chatbot Kab. Bengkayang - Start All Services
+# Siap Bengkayang - Chatbot Kabupaten Bengkayang - Start All Services
 # ============================================================
 # Menjalankan Backend, Frontend, Bot, dan Scheduler secara bersamaan
 # Tekan Ctrl+C untuk menghentikan semua service
@@ -38,7 +38,7 @@ trap cleanup SIGINT SIGTERM
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo -e "${CYAN}============================================${NC}"
-echo -e "${CYAN}  Diskominfo Chatbot - Starting All Services${NC}"
+echo -e "${CYAN}  Siap Bengkayang - Starting All Services${NC}"
 echo -e "${CYAN}============================================${NC}"
 echo ""
 

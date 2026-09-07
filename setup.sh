@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ============================================================
-# MPP Chatbot Kab. Bengkayang - Setup Script (Tanpa Docker)
+# Siap Bengkayang - Setup Script (Tanpa Docker)
 # ============================================================
 # Prerequisites:
 #   - PHP >= 8.2 dengan extensions: pdo_sqlite, mbstring, xml, curl, zip
@@ -13,7 +13,7 @@
 set -e
 
 echo "============================================"
-echo "  MPP Chatbot Kab. Bengkayang - Setup"
+echo "  Siap Bengkayang - Setup"
 echo "============================================"
 echo ""
 

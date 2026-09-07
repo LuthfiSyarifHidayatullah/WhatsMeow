@@ -1,6 +1,6 @@
 # Panduan Running di Windows (Tanpa Docker)
 
-Panduan lengkap menjalankan **MPP Chatbot Kab. Bengkayang** di Windows tanpa Docker.
+Panduan lengkap menjalankan **Siap Bengkayang - Chatbot Kabupaten Bengkayang** di Windows tanpa Docker.
 
 ---
 
