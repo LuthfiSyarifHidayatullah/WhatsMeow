@@ -1,6 +1,6 @@
-# MPP Chatbot - Mall Pelayanan Publik Kab. Bengkayang
+# Siap Bengkayang - Chatbot Pelayanan Kabupaten Bengkayang
 
-Aplikasi WhatsApp Chatbot untuk Mall Pelayanan Publik (MPP) Pemerintah Kabupaten Bengkayang, dilengkapi dengan sistem monitoring real-time dan live chat petugas.
+Aplikasi WhatsApp Chatbot untuk pelayanan Pemerintah Kabupaten Bengkayang, dilengkapi dengan sistem monitoring real-time dan live chat petugas.
 
 ## Arsitektur Sistem
 
@@ -229,8 +229,8 @@ go run .
 
 ```
 Pengunjung: halo
-Bot: 🏛️ *Mall Pelayanan Publik*
-     *Pemerintah Kabupaten Bengkayang*
+Bot: 🏛️ *SISTEM INFORMASI PELAYANAN*
+     *PEMERINTAH KABUPATEN BENGKAYANG*
      
      Selamat datang! Silakan pilih layanan:
      

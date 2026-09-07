@@ -4,8 +4,8 @@
     <aside class="w-64 bg-primary-900 text-white flex flex-col">
       <!-- Logo -->
       <div class="p-5 border-b border-primary-800">
-        <h1 class="text-lg font-bold">Diskominfo Chatbot</h1>
-        <p class="text-primary-300 text-xs">Kab. Bengkayang</p>
+        <h1 class="text-lg font-bold">Siap Bengkayang</h1>
+        <p class="text-primary-300 text-xs">Kabupaten Bengkayang</p>
       </div>
 
       <!-- Navigation -->

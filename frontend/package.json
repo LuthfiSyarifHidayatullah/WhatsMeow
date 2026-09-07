@@ -1,7 +1,7 @@
 {
-  "name": "diskominfo-chatbot-frontend",
+  "name": "siap-bengkayang-frontend",
   "version": "1.0.0",
-  "description": "Dashboard Chatbot Dinas Komunikasi Dan Informatika Kab. Bengkayang",
+  "description": "Dashboard Siap Bengkayang - Chatbot Pelayanan Kabupaten Bengkayang",
   "type": "module",
   "scripts": {
     "dev": "vite",

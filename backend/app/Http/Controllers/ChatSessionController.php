@@ -179,7 +179,7 @@ class ChatSessionController extends Controller
         // Send notification to WhatsApp user that chat is resolved (TANPA rating)
         // Rating hanya diminta saat petugas kirim notifikasi 'case selesai'
         $reply = "✅ Percakapan telah diselesaikan oleh petugas.\n\n";
-        $reply .= "Terima kasih telah menghubungi Diskominfo Kab. Bengkayang! 🙏\n\n";
+        $reply .= "Terima kasih telah menghubungi Pemerintah Kabupaten Bengkayang! 🙏\n\n";
         $reply .= "Pengajuan Anda sedang diproses. Kami akan memberitahu setelah selesai.\n";
         $reply .= "Ketik *menu* untuk memulai percakapan baru.";
 

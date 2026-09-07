@@ -2,7 +2,7 @@
 
 return [
 
-    'name' => env('APP_NAME', 'MPP Chatbot Bengkayang'),
+    'name' => env('APP_NAME', 'Siap Bengkayang'),
     'env' => env('APP_ENV', 'production'),
     'debug' => (bool) env('APP_DEBUG', false),
     'url' => env('APP_URL', 'http://localhost'),

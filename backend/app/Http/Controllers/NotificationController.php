@@ -143,7 +143,7 @@ class NotificationController extends Controller
             ['id' => 'zoom_confirmed', 'label' => 'Jadwal Zoom Dikonfirmasi', 'message' => "Halo! Jadwal Zoom Meeting yang Anda ajukan sudah dikonfirmasi.\n\nLink meeting akan dikirimkan H-1 sebelum kegiatan.\nTerima kasih. 🙏"],
             ['id' => 'doc_approved', 'label' => 'Fasilitasi Dokumentasi Disetujui', 'message' => "Halo! Permohonan fasilitasi dokumentasi kegiatan Anda sudah disetujui.\n\nTim dokumentasi akan hadir sesuai jadwal yang telah ditentukan.\nTerima kasih. 🙏"],
             ['id' => 'tte_done', 'label' => 'TTE Sudah Aktif', 'message' => "Halo! Tanda Tangan Elektronik (TTE) Anda sudah aktif dan siap digunakan.\n\nSilakan hubungi kami jika ada kendala.\nTerima kasih. 🙏"],
-            ['id' => 'alat_ready', 'label' => 'Alat Siap Diambil', 'message' => "Halo! Alat yang Anda pinjam sudah disiapkan.\n\nSilakan ambil di kantor Diskominfo sesuai jadwal yang telah ditentukan.\nTerima kasih. 🙏"],
+            ['id' => 'alat_ready', 'label' => 'Alat Siap Diambil', 'message' => "Halo! Alat yang Anda pinjam sudah disiapkan.\n\nSilakan ambil di kantor pelayanan Kabupaten Bengkayang sesuai jadwal yang telah ditentukan.\nTerima kasih. 🙏"],
             ['id' => 'rejected', 'label' => 'Pengajuan Ditolak', 'message' => "Halo! Mohon maaf, pengajuan Anda belum dapat kami proses saat ini.\n\nSilakan hubungi petugas untuk informasi lebih lanjut.\nTerima kasih. 🙏"],
         ];
 

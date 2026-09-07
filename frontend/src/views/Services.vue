@@ -3,7 +3,7 @@
     <div class="flex items-center justify-between mb-6">
       <div>
         <h1 class="text-2xl font-bold text-gray-900">Manajemen Layanan</h1>
-        <p class="text-gray-500 text-sm">Kelola daftar layanan MPP Kab. Bengkayang</p>
+        <p class="text-gray-500 text-sm">Kelola daftar layanan Kabupaten Bengkayang</p>
       </div>
       <button @click="showForm = true" class="btn-primary">+ Tambah Layanan</button>
     </div>

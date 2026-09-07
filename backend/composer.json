@@ -1,7 +1,7 @@
 {
     "name": "mpp-bengkayang/chatbot-backend",
     "type": "project",
-    "description": "MPP Kab. Bengkayang WhatsApp Chatbot Backend",
+    "description": "Siap Bengkayang - WhatsApp Chatbot Backend Kabupaten Bengkayang",
     "require": {
         "php": "^8.2",
         "laravel/framework": "^12.0",
