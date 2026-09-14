@@ -91,6 +91,18 @@ func eventHandler(evt interface{}) {
 }
 
 func handleMessage(msg *events.Message) {
+	// Abaikan pesan yang dikirim oleh bot sendiri (echo pesan keluar petugas),
+	// agar tidak diproses ulang dan membuat sesi/menu palsu.
+	if msg.Info.IsFromMe {
+		return
+	}
+
+	// Abaikan pesan grup / broadcast list — layanan ini hanya untuk chat pribadi.
+	// (IsGroup pada whatsmeow mencakup grup maupun broadcast list.)
+	if msg.Info.IsGroup {
+		return
+	}
+
 	sender := msg.Info.Sender.String()
 	chatJID := msg.Info.Chat.String()
 

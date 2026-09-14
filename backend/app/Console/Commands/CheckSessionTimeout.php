@@ -13,7 +13,14 @@ use Illuminate\Console\Command;
 class CheckSessionTimeout extends Command
 {
     protected $signature = 'chat:check-timeout';
-    protected $description = 'Check and auto-disconnect sessions where officer has not responded within 5 minutes';
+    protected $description = 'Check and auto-disconnect stale chat sessions (officer inactive / no officer available)';
+
+    /**
+     * Batas waktu (menit) sebelum sesi ditutup otomatis.
+     * Ubah nilai di sini untuk menyetel durasi timeout.
+     */
+    private const ACTIVE_TIMEOUT_MINUTES = 15;  // sesi aktif: petugas tidak merespon
+    private const WAITING_TIMEOUT_MINUTES = 10; // sesi antrian: tidak ada petugas yang mengambil
 
     public function handle(): void
     {
@@ -55,10 +62,10 @@ class CheckSessionTimeout extends Command
                 continue;
             }
 
-            // Check if more than 5 minutes since visitor's last message
+            // Check if more than ACTIVE_TIMEOUT_MINUTES since visitor's last message
             $minutesSinceVisitorMessage = now()->diffInMinutes($lastVisitorMessage->created_at);
 
-            if ($minutesSinceVisitorMessage >= 5) {
+            if ($minutesSinceVisitorMessage >= self::ACTIVE_TIMEOUT_MINUTES) {
                 $this->timeoutSession($session, 'active');
                 $this->info("Timeout: Session {$session->session_id} (officer inactive)");
             }
@@ -71,7 +78,7 @@ class CheckSessionTimeout extends Command
     private function checkWaitingSessionsTimeout(): void
     {
         $waitingSessions = ChatSession::where('status', 'waiting')
-            ->where('escalated_at', '<=', now()->subMinutes(5))
+            ->where('escalated_at', '<=', now()->subMinutes(self::WAITING_TIMEOUT_MINUTES))
             ->with(['service'])
             ->get();
 
@@ -127,19 +134,23 @@ class CheckSessionTimeout extends Command
 
         // Log activity
         $serviceName = $session->service?->name ?? 'Umum';
+        $timeoutMinutes = $reason === 'active' ? self::ACTIVE_TIMEOUT_MINUTES : self::WAITING_TIMEOUT_MINUTES;
+        $logDescription = $reason === 'active'
+            ? "Petugas {$officerName} tidak merespon dalam {$timeoutMinutes} menit. Layanan: {$serviceName}. Visitor: {$session->visitor_phone}"
+            : "Tidak ada petugas yang mengambil sesi dalam {$timeoutMinutes} menit. Layanan: {$serviceName}. Visitor: {$session->visitor_phone}";
+
         ActivityLog::create([
             'user_id' => $session->officer_id,
             'chat_session_id' => $session->id,
             'action' => 'officer_timeout',
-            'description' => "Petugas {$officerName} tidak merespon dalam 5 menit. Layanan: {$serviceName}. Visitor: {$session->visitor_phone}",
+            'description' => $logDescription,
             'ip_address' => '0.0.0.0',
         ]);
 
         // Broadcast to monitoring channel for admin/supervisor notification
-        event(new NewMessageEvent(
-            $session,
-            "TIMEOUT: Petugas {$officerName} tidak merespon chat dari {$session->visitor_phone} ({$serviceName}) dalam 5 menit.",
-            'system'
-        ));
+        $broadcastMessage = $reason === 'active'
+            ? "TIMEOUT: Petugas {$officerName} tidak merespon chat dari {$session->visitor_phone} ({$serviceName}) dalam {$timeoutMinutes} menit."
+            : "TIMEOUT: Tidak ada petugas untuk chat dari {$session->visitor_phone} ({$serviceName}) dalam {$timeoutMinutes} menit.";
+        event(new NewMessageEvent($session, $broadcastMessage, 'system'));
     }
 }

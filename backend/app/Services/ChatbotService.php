@@ -101,6 +101,12 @@ class ChatbotService
      */
     public function processIncomingMessage(string $sender, string $chatJID, string $text): array
     {
+        // Normalisasi nomor pengirim agar sesi dikenali konsisten walau JID
+        // membawa sufiks perangkat (mis. "6281xxxx:12@s.whatsapp.net" saat
+        // pengguna berpindah HP/WhatsApp Web). Tanpa ini, sesi active bisa
+        // "hilang" dan pengguna malah dikirimi menu lagi.
+        $sender = $this->normalizePhone($sender);
+
         $this->expireRatingWindow($sender);
 
         $ratingResult = $this->handleRatingIfApplicable($sender, $text);
@@ -632,9 +638,42 @@ class ChatbotService
         return ['reply' => $reply, 'action' => 'resolved', 'session_id' => $session->session_id];
     }
 
+    /**
+     * Normalisasi nomor/JID pengirim menjadi nomor telepon murni (hanya digit).
+     * Membuang sufiks perangkat (":12"), domain ("@s.whatsapp.net"), dan
+     * karakter non-digit lain. Contoh:
+     *   "6281234567890:12@s.whatsapp.net" -> "6281234567890"
+     *   "+62 812-3456-7890"               -> "6281234567890"
+     */
+    private function normalizePhone(string $sender): string
+    {
+        // Ambil bagian sebelum '@' (buang domain) dan sebelum ':' (buang device id)
+        $local = explode('@', $sender)[0];
+        $local = explode(':', $local)[0];
+
+        // Sisakan digit saja
+        $digits = preg_replace('/\D+/', '', $local);
+
+        // Fallback: jika hasil kosong, kembalikan sender asli agar tidak error
+        return $digits !== '' ? $digits : $sender;
+    }
+
+    /**
+     * Query dasar untuk mencocokkan sesi milik satu visitor.
+     * Toleran terhadap sesi lama yang tersimpan dengan JID bersufiks:
+     * cocokkan nilai persis ($phone) ATAU yang diawali nomor tsb ("$phone%").
+     */
+    private function sessionsForVisitor(string $phone)
+    {
+        return ChatSession::where(function ($q) use ($phone) {
+            $q->where('visitor_phone', $phone)
+              ->orWhere('visitor_phone', 'like', $phone . '%');
+        });
+    }
+
     private function expireRatingWindow(string $sender): void
     {
-        ChatSession::where('visitor_phone', $sender)
+        $this->sessionsForVisitor($sender)
             ->where('status', 'resolved')
             ->whereNull('satisfaction_rating')
             ->where('resolved_at', '<', now()->subMinutes(30))
@@ -646,12 +685,12 @@ class ChatbotService
         $lowerText = strtolower(trim($text));
         if (!in_array($lowerText, ['1', '2', '3', '4', '5'])) return null;
 
-        $activeSession = ChatSession::where('visitor_phone', $sender)
+        $activeSession = $this->sessionsForVisitor($sender)
             ->whereIn('status', ['bot', 'waiting', 'active'])->first();
         if ($activeSession) return null;
 
         // Find session awaiting rating (within 30 minutes of notification being sent)
-        $session = ChatSession::where('visitor_phone', $sender)
+        $session = $this->sessionsForVisitor($sender)
             ->where('status', 'resolved')
             ->whereNull('satisfaction_rating')
             ->where('resolved_at', '>=', now()->subMinutes(30))
@@ -672,7 +711,8 @@ class ChatbotService
 
     private function getOrCreateSession(string $sender, string $chatJID): ChatSession
     {
-        $session = ChatSession::where('visitor_phone', $sender)
+        // $sender sudah dinormalisasi (nomor murni) di entry point.
+        $session = $this->sessionsForVisitor($sender)
             ->whereIn('status', ['bot', 'waiting', 'active'])->latest()->first();
 
         if (!$session) {
@@ -813,6 +853,7 @@ class ChatbotService
      */
     public function processIncomingMedia(string $sender, string $chatJID, string $mediaType, string $caption, string $mediaUrl): array
     {
+        $sender = $this->normalizePhone($sender);
         $session = $this->getOrCreateSession($sender, $chatJID);
         $session->refresh();
 
