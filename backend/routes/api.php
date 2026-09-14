@@ -7,6 +7,7 @@ use App\Http\Controllers\BotResponseController;
 use App\Http\Controllers\ChatSessionController;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\OpdController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -55,6 +56,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{sessionId}/resolve', [ChatSessionController::class, 'resolve']);
         Route::post('/{sessionId}/messages', [ChatSessionController::class, 'sendMessage']);
     });
+
+    // OPD (Instansi/Perangkat Daerah) Management
+    Route::apiResource('opds', OpdController::class);
 
     // Services Management
     Route::apiResource('services', ServiceController::class);

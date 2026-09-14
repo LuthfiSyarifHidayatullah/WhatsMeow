@@ -35,6 +35,11 @@ const routes = [
         component: () => import('../views/Monitoring.vue'),
       },
       {
+        path: 'opds',
+        name: 'Opds',
+        component: () => import('../views/Opds.vue'),
+      },
+      {
         path: 'services',
         name: 'Services',
         component: () => import('../views/Services.vue'),

@@ -6,6 +6,7 @@ use App\Models\Booking;
 use App\Models\BotResponse;
 use App\Models\ChatSession;
 use App\Models\Message;
+use App\Models\Opd;
 use App\Models\Service;
 use App\Models\User;
 use App\Events\NewMessageEvent;
@@ -15,46 +16,70 @@ use Illuminate\Support\Str;
 class ChatbotService
 {
     /**
-     * Sub-menu definitions per service code
+     * Sub-menu definitions per service code.
+     *
+     * Cakupan se-kabupaten: layanan dikelompokkan per OPD. Setiap layanan
+     * memakai salah satu dari 2 tipe aksi:
+     *   - formulir_then_escalate : tampilkan link formulir, lalu ke petugas
+     *   - escalate               : langsung ke petugas
+     *
+     * (Tipe 'schedule' masih didukung oleh kode & tabel bookings sebagai
+     *  cadangan, namun tidak dipakai di layanan OPD sample saat ini.)
      */
     private array $serviceMenus = [
-        'domain' => [
-            'title' => 'Domain Bengkayang.go.id',
+        // === Dinas Pendidikan ===
+        'pendidikan_paud' => [
+            'title' => 'Pendidikan Anak Usia Dini (PAUD)',
             'items' => [
-                1 => ['label' => 'Formulir Pengajuan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
+                1 => ['label' => 'Formulir Permohonan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
                 2 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
             ],
         ],
-        'zoom' => [
-            'title' => 'Zoom Meeting/Video Conference',
+        'pendidikan_dasar' => [
+            'title' => 'Pendidikan Dasar (SD/SMP)',
             'items' => [
-                1 => ['label' => 'Informasi Jadwal', 'action' => 'schedule'],
-                2 => ['label' => 'Formulir Pengajuan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
-                3 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
+                1 => ['label' => 'Formulir Permohonan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
+                2 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
             ],
         ],
-        'dokumentasi' => [
-            'title' => 'Fasilitasi Dokumentasi Kegiatan',
+        'pendidikan_kesetaraan' => [
+            'title' => 'Pendidikan Kesetaraan',
             'items' => [
-                1 => ['label' => 'Informasi Jadwal', 'action' => 'schedule'],
-                2 => ['label' => 'Formulir Pengajuan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
-                3 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
+                1 => ['label' => 'Formulir Permohonan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
+                2 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
             ],
         ],
-        'tte' => [
-            'title' => 'Tanda Tangan Elektronik (TTE)',
+        'pendidikan_pengaduan' => [
+            'title' => 'Pengaduan Pelayanan Pendidikan',
             'items' => [
-                1 => ['label' => 'Informasi Jadwal', 'action' => 'schedule'],
-                2 => ['label' => 'Formulir Pengajuan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
-                3 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
+                1 => ['label' => 'Sampaikan Pengaduan ke Petugas', 'action' => 'escalate'],
             ],
         ],
-        'alat' => [
-            'title' => 'Alat dan Operator Kegiatan',
+
+        // === Satuan Polisi Pamong Praja ===
+        'satpolpp_pengaduan_trantibum' => [
+            'title' => 'Pengaduan Gangguan Ketertiban Umum',
             'items' => [
-                1 => ['label' => 'Informasi Jadwal', 'action' => 'schedule'],
-                2 => ['label' => 'Formulir Pengajuan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
-                3 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
+                1 => ['label' => 'Sampaikan Pengaduan ke Petugas', 'action' => 'escalate'],
+            ],
+        ],
+        'satpolpp_pengamanan' => [
+            'title' => 'Permohonan Bantuan Pengamanan Kegiatan',
+            'items' => [
+                1 => ['label' => 'Formulir Permohonan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
+                2 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
+            ],
+        ],
+        'satpolpp_linmas' => [
+            'title' => 'Informasi Perlindungan Masyarakat (Linmas)',
+            'items' => [
+                1 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
+            ],
+        ],
+        'satpolpp_pengaduan' => [
+            'title' => 'Pengaduan Pelayanan Satpol PP',
+            'items' => [
+                1 => ['label' => 'Sampaikan Pengaduan ke Petugas', 'action' => 'escalate'],
             ],
         ],
     ];
@@ -102,16 +127,23 @@ class ChatbotService
             return $this->getMainMenu($session);
         }
 
-        // Menu commands
+        // Menu utama (reset ke pemilihan OPD)
         if (in_array($lowerText, ['menu', '0', 'halo', 'hai', 'hi', 'hello', 'start'])) {
-            $session->update(['service_id' => null, 'topic' => null]);
+            $session->update(['service_id' => null, 'current_opd_id' => null, 'topic' => null]);
             return $this->getMainMenu($session);
         }
 
-        // Back command (9) → go back to service sub-menu if service selected
+        // Back command (9)
         if ($lowerText === '9') {
+            // Sudah pilih layanan → kembali ke menu OPD
             if ($session->service_id) {
-                return $this->getServiceSubMenu($session);
+                $session->update(['service_id' => null]);
+                return $this->getOpdMenu($session);
+            }
+            // Sudah pilih OPD (belum pilih layanan) → kembali ke menu utama
+            if ($session->current_opd_id) {
+                $session->update(['current_opd_id' => null]);
+                return $this->getMainMenu($session);
             }
             return $this->getMainMenu($session);
         }
@@ -121,41 +153,82 @@ class ChatbotService
             return $this->resolveSession($session);
         }
 
-        // Direct escalation
+        // Direct escalation (hanya jika layanan sudah dipilih, agar petugas tepat)
         if (in_array($lowerText, ['petugas', 'operator', 'live chat', 'konfirmasi'])) {
-            return $this->escalateToOfficer($session, $session->service_id);
+            if ($session->service_id) {
+                return $this->escalateToOfficer($session, $session->service_id);
+            }
+            // Belum pilih layanan → arahkan pilih dulu
+            if ($session->current_opd_id) {
+                return $this->getOpdMenu($session);
+            }
+            return $this->getMainMenu($session);
         }
 
         // Numeric input
         if (is_numeric($lowerText)) {
             $number = (int) $lowerText;
 
-            // If service already selected → handle sub-menu selection
+            // Layanan sudah dipilih → sub-menu layanan
             if ($session->service_id) {
                 return $this->handleSubMenuSelection($session, $number);
             }
 
-            // Otherwise → handle main menu service selection
+            // OPD sudah dipilih → pilih layanan dalam OPD
+            if ($session->current_opd_id) {
+                return $this->handleOpdMenuSelection($session, $number);
+            }
+
+            // Belum pilih apa-apa → pilih OPD dari menu utama
             return $this->handleMainMenuSelection($session, $number);
         }
 
-        // Keyword matching
+        // Keyword matching (lintas OPD) → langsung ke sub-menu layanan
         $matchedService = $this->matchServiceByKeywords($text);
         if ($matchedService) {
-            $session->update(['service_id' => $matchedService->id, 'topic' => $text]);
+            $session->update([
+                'service_id' => $matchedService->id,
+                'current_opd_id' => $matchedService->opd_id,
+                'topic' => $text,
+            ]);
             return $this->getServiceSubMenu($session);
         }
 
-        // Not recognized → show main menu
+        // Tidak dikenali → tampilkan menu utama
         return $this->getMainMenu($session);
     }
 
     /**
-     * Handle main menu number selection (1-5 = select service)
+     * Handle main menu selection = pilih OPD (Instansi)
      */
     private function handleMainMenuSelection(ChatSession $session, int $number): array
     {
-        $services = Service::where('is_active', true)->orderBy('sort_order')->get();
+        $opds = Opd::where('is_active', true)->orderBy('sort_order')->get();
+
+        if ($number > 0 && $number <= $opds->count()) {
+            $opd = $opds[$number - 1];
+            $session->update(['current_opd_id' => $opd->id, 'service_id' => null]);
+            return $this->getOpdMenu($session);
+        }
+
+        return $this->getMainMenu($session);
+    }
+
+    /**
+     * Handle OPD menu selection = pilih layanan di dalam OPD
+     */
+    private function handleOpdMenuSelection(ChatSession $session, int $number): array
+    {
+        $opd = Opd::find($session->current_opd_id);
+        if (!$opd) {
+            $session->update(['current_opd_id' => null]);
+            return $this->getMainMenu($session);
+        }
+
+        $services = Service::where('opd_id', $opd->id)
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->get();
 
         if ($number > 0 && $number <= $services->count()) {
             $service = $services[$number - 1];
@@ -163,7 +236,7 @@ class ChatbotService
             return $this->getServiceSubMenu($session);
         }
 
-        return $this->getMainMenu($session);
+        return $this->getOpdMenu($session);
     }
 
     /**
@@ -177,8 +250,18 @@ class ChatbotService
         }
 
         $menuDef = $this->serviceMenus[$service->code] ?? null;
-        if (!$menuDef || !isset($menuDef['items'][$number])) {
-            // Angka 3 = konfirmasi/hubungi petugas (shortcut)
+
+        // Fallback: layanan tanpa definisi menu → angka 1 = hubungi petugas
+        if (!$menuDef) {
+            if ($number === 1) {
+                return $this->escalateToOfficer($session, $session->service_id);
+            }
+            return $this->getServiceSubMenu($session);
+        }
+
+        if (!isset($menuDef['items'][$number])) {
+            // Shortcut "3" = konfirmasi setelah isi formulir → hubungi petugas
+            // (dipertahankan karena instruksi formulir meminta ketik "3").
             if ($number === 3) {
                 return $this->escalateToOfficer($session, $session->service_id);
             }
@@ -331,21 +414,21 @@ class ChatbotService
     }
 
     /**
-     * Get main menu
+     * Get main menu = daftar OPD (Instansi)
      */
     private function getMainMenu(?ChatSession $session = null): array
     {
-        $services = Service::where('is_active', true)->orderBy('sort_order')->get();
+        $opds = Opd::where('is_active', true)->orderBy('sort_order')->get();
 
         $reply = "📋 *SISTEM INFORMASI PELAYANAN*\n";
         $reply .= "*PEMERINTAH KABUPATEN BENGKAYANG*\n\n";
-        $reply .= "Silakan pilih pelayanan:\n\n";
+        $reply .= "Silakan pilih instansi/perangkat daerah:\n\n";
 
-        foreach ($services as $index => $service) {
-            $reply .= ($index + 1) . ". {$service->name}\n";
+        foreach ($opds as $index => $opd) {
+            $reply .= ($index + 1) . ". {$opd->name}\n";
         }
 
-        $reply .= "\nKetik angka sesuai pelayanan yang dibutuhkan.";
+        $reply .= "\nKetik angka sesuai instansi yang dituju.";
 
         if ($session) {
             $this->storeMessage($session, 'bot', $reply);
@@ -355,6 +438,41 @@ class ChatbotService
             'reply' => $reply,
             'action' => 'bot_reply',
             'session_id' => $session?->session_id,
+        ];
+    }
+
+    /**
+     * Get OPD menu = daftar layanan dalam OPD terpilih
+     */
+    private function getOpdMenu(ChatSession $session): array
+    {
+        $opd = Opd::find($session->current_opd_id);
+        if (!$opd) {
+            $session->update(['current_opd_id' => null]);
+            return $this->getMainMenu($session);
+        }
+
+        $services = Service::where('opd_id', $opd->id)
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->get();
+
+        $reply = "🏛️ *{$opd->name}*\n\n";
+        $reply .= "Silakan pilih pelayanan:\n\n";
+
+        foreach ($services as $index => $service) {
+            $reply .= ($index + 1) . ". {$service->name}\n";
+        }
+
+        $reply .= "\n9. Kembali (pilih instansi lain)\n";
+        $reply .= "0. Menu Utama";
+
+        $this->storeMessage($session, 'bot', $reply);
+        return [
+            'reply' => $reply,
+            'action' => 'bot_reply',
+            'session_id' => $session->session_id,
+            'opd_id' => $opd->id,
         ];
     }
 
@@ -378,11 +496,10 @@ class ChatbotService
                 $reply .= "{$num}. {$item['label']}\n";
             }
         } else {
-            $reply .= "1. Informasi Umum\n";
-            $reply .= "6. Hubungi Petugas\n";
+            $reply .= "1. Hubungi Petugas\n";
         }
 
-        $reply .= "\n9. Kembali\n";
+        $reply .= "\n9. Kembali (pilih layanan lain)\n";
         $reply .= "0. Menu Utama";
 
         $this->storeMessage($session, 'bot', $reply);
@@ -480,7 +597,7 @@ class ChatbotService
 
     private function resolveSession(ChatSession $session): array
     {
-        $session->update(['status' => 'resolved', 'resolved_at' => now()]);
+        $session->update(['status' => 'resolved', 'resolved_at' => now(), 'current_opd_id' => null]);
         if ($session->officer_id) {
             $officer = User::find($session->officer_id);
             if ($officer) $officer->decrement('current_chat_count');

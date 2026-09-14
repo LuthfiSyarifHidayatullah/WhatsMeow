@@ -14,6 +14,7 @@ class ChatSession extends Model
         'visitor_name',
         'chat_jid',
         'service_id',
+        'current_opd_id',
         'officer_id',
         'status',
         'priority',
@@ -34,6 +35,11 @@ class ChatSession extends Model
     public function service(): BelongsTo
     {
         return $this->belongsTo(Service::class);
+    }
+
+    public function currentOpd(): BelongsTo
+    {
+        return $this->belongsTo(Opd::class, 'current_opd_id');
     }
 
     public function officer(): BelongsTo

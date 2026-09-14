@@ -86,6 +86,7 @@ const menuItems = computed(() => {
 
   if (authStore.isAdmin || authStore.isSupervisor) {
     items.push(
+      { path: '/opds', label: 'Instansi (OPD)', icon: 'OpdIcon' },
       { path: '/services', label: 'Layanan', icon: 'ServiceIcon' },
       { path: '/officers', label: 'Petugas', icon: 'UserIcon' },
       { path: '/bot-responses', label: 'Respons Bot', icon: 'BotIcon' },
