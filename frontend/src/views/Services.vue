@@ -15,6 +15,7 @@
           <div>
             <h3 class="font-semibold text-gray-900">{{ service.name }}</h3>
             <p class="text-xs text-gray-500 font-mono">{{ service.code }}</p>
+            <p v-if="service.opd" class="text-xs text-primary-600 mt-0.5">🏛️ {{ service.opd.name }}</p>
           </div>
           <span v-if="service.is_active" class="badge badge-active">Aktif</span>
           <span v-else class="badge badge-resolved">Non-aktif</span>
@@ -40,6 +41,13 @@
       <div class="bg-white rounded-xl p-6 w-full max-w-md">
         <h3 class="text-lg font-semibold mb-4">{{ editingService ? 'Edit' : 'Tambah' }} Layanan</h3>
         <form @submit.prevent="saveService" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Instansi (OPD)</label>
+            <select v-model="form.opd_id" class="input-field">
+              <option :value="null">- Tanpa Instansi -</option>
+              <option v-for="opd in opds" :key="opd.id" :value="opd.id">{{ opd.name }}</option>
+            </select>
+          </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Nama Layanan</label>
             <input v-model="form.name" class="input-field" required />
@@ -75,10 +83,12 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import api from '../composables/useApi'
 
 const services = ref([])
+const opds = ref([])
 const showForm = ref(false)
 const editingService = ref(null)
 const keywordsInput = ref('')
 const form = reactive({
+  opd_id: null,
   name: '',
   code: '',
   description: '',
@@ -92,9 +102,15 @@ async function fetchServices() {
   services.value = res.data
 }
 
+async function fetchOpds() {
+  const res = await api.get('/opds')
+  opds.value = res.data
+}
+
 function editService(service) {
   editingService.value = service
   Object.assign(form, {
+    opd_id: service.opd_id ?? null,
     name: service.name,
     code: service.code,
     description: service.description || '',
@@ -109,7 +125,7 @@ function editService(service) {
 function closeForm() {
   showForm.value = false
   editingService.value = null
-  Object.assign(form, { name: '', code: '', description: '', keywords: [], is_active: true, sort_order: 0 })
+  Object.assign(form, { opd_id: null, name: '', code: '', description: '', keywords: [], is_active: true, sort_order: 0 })
   keywordsInput.value = ''
 }
 
@@ -134,5 +150,8 @@ async function deleteService(service) {
   await fetchServices()
 }
 
-onMounted(fetchServices)
+onMounted(() => {
+  fetchServices()
+  fetchOpds()
+})
 </script>

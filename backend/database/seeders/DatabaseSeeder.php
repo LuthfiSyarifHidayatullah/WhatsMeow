@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\BotResponse;
+use App\Models\Opd;
 use App\Models\Service;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -12,110 +13,190 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Create Services (5 Pelayanan Kabupaten Bengkayang)
-        $services = [
+        // =====================================================
+        // OPD (Organisasi Perangkat Daerah) - Sample 2 Pengampu SPM
+        // =====================================================
+        $opds = [
             [
-                'name' => 'Domain Bengkayang.go.id',
-                'code' => 'domain',
-                'description' => 'Layanan pengajuan dan pengelolaan subdomain bengkayang.go.id untuk OPD.',
-                'keywords' => ['domain', 'subdomain', 'bengkayang.go.id', 'website', 'hosting', 'dns'],
+                'name' => 'Dinas Pendidikan',
+                'code' => 'pendidikan',
+                'description' => 'Pengampu SPM Bidang Pendidikan (Perbup Bengkayang No. 45 Tahun 2021).',
                 'sort_order' => 1,
             ],
             [
-                'name' => 'Zoom Meeting/Video Conference',
-                'code' => 'zoom',
-                'description' => 'Layanan peminjaman akun Zoom Meeting dan Video Conference untuk kegiatan dinas.',
-                'keywords' => ['zoom', 'meeting', 'video conference', 'vicon', 'webinar', 'rapat online'],
+                'name' => 'Satuan Polisi Pamong Praja',
+                'code' => 'satpolpp',
+                'description' => 'Pengampu SPM Sub-Urusan Ketentraman dan Ketertiban Umum.',
                 'sort_order' => 2,
-            ],
-            [
-                'name' => 'Fasilitasi Dokumentasi Kegiatan',
-                'code' => 'dokumentasi',
-                'description' => 'Layanan pengajuan fasilitasi dokumentasi kegiatan OPD (foto, video, liputan).',
-                'keywords' => ['dokumentasi', 'foto', 'video', 'liputan', 'fasilitasi', 'kegiatan'],
-                'sort_order' => 3,
-            ],
-            [
-                'name' => 'Tanda Tangan Elektronik (TTE)',
-                'code' => 'tte',
-                'description' => 'Layanan pengajuan dan penerbitan Tanda Tangan Elektronik untuk ASN.',
-                'keywords' => ['tte', 'tanda tangan elektronik', 'digital signature', 'sertifikat elektronik', 'bsre'],
-                'sort_order' => 4,
-            ],
-            [
-                'name' => 'Alat dan Operator Kegiatan',
-                'code' => 'alat',
-                'description' => 'Layanan peminjaman alat dokumentasi, multimedia, dan operator untuk kegiatan dinas.',
-                'keywords' => ['alat', 'operator', 'kamera', 'multimedia', 'sound system', 'peminjaman'],
-                'sort_order' => 5,
             ],
         ];
 
-        foreach ($services as $serviceData) {
-            Service::create($serviceData);
+        $opdModels = [];
+        foreach ($opds as $opdData) {
+            $opd = Opd::create($opdData);
+            $opdModels[$opd->code] = $opd;
         }
 
-        // Create Admin User
+        // =====================================================
+        // SERVICE (Layanan) per OPD
+        // =====================================================
+        $services = [
+            // --- Dinas Pendidikan ---
+            [
+                'opd_code' => 'pendidikan',
+                'name' => 'Pendidikan Anak Usia Dini (PAUD)',
+                'code' => 'pendidikan_paud',
+                'description' => 'Layanan pendidikan anak usia dini (PAUD) sesuai SPM Bidang Pendidikan.',
+                'keywords' => ['paud', 'anak usia dini', 'tk', 'taman kanak', 'kelompok bermain'],
+                'sort_order' => 1,
+            ],
+            [
+                'opd_code' => 'pendidikan',
+                'name' => 'Pendidikan Dasar (SD/SMP)',
+                'code' => 'pendidikan_dasar',
+                'description' => 'Layanan pendidikan dasar jenjang SD dan SMP sesuai SPM Bidang Pendidikan.',
+                'keywords' => ['pendidikan dasar', 'sd', 'smp', 'sekolah dasar', 'sekolah menengah pertama'],
+                'sort_order' => 2,
+            ],
+            [
+                'opd_code' => 'pendidikan',
+                'name' => 'Pendidikan Kesetaraan',
+                'code' => 'pendidikan_kesetaraan',
+                'description' => 'Layanan pendidikan kesetaraan (Paket A/B/C) sesuai SPM Bidang Pendidikan.',
+                'keywords' => ['kesetaraan', 'paket a', 'paket b', 'paket c', 'kejar paket'],
+                'sort_order' => 3,
+            ],
+            [
+                'opd_code' => 'pendidikan',
+                'name' => 'Pengaduan Pelayanan Pendidikan',
+                'code' => 'pendidikan_pengaduan',
+                'description' => 'Kanal pengaduan atas pelayanan pendidikan di Kabupaten Bengkayang.',
+                'keywords' => ['pengaduan pendidikan', 'keluhan sekolah', 'aduan pendidikan', 'lapor pendidikan'],
+                'sort_order' => 4,
+            ],
+
+            // --- Satuan Polisi Pamong Praja ---
+            [
+                'opd_code' => 'satpolpp',
+                'name' => 'Pengaduan Gangguan Ketertiban Umum',
+                'code' => 'satpolpp_pengaduan_trantibum',
+                'description' => 'Pengaduan gangguan ketertiban umum (kebisingan, PKL liar, bangunan tanpa izin, dll).',
+                'keywords' => ['ketertiban', 'trantibum', 'pkl', 'kebisingan', 'gangguan', 'ketentraman'],
+                'sort_order' => 1,
+            ],
+            [
+                'opd_code' => 'satpolpp',
+                'name' => 'Permohonan Bantuan Pengamanan Kegiatan',
+                'code' => 'satpolpp_pengamanan',
+                'description' => 'Permohonan bantuan pengamanan Satpol PP untuk kegiatan/keramaian.',
+                'keywords' => ['pengamanan', 'bantuan pengamanan', 'pengawalan', 'keramaian', 'acara'],
+                'sort_order' => 2,
+            ],
+            [
+                'opd_code' => 'satpolpp',
+                'name' => 'Informasi Perlindungan Masyarakat (Linmas)',
+                'code' => 'satpolpp_linmas',
+                'description' => 'Informasi terkait Perlindungan Masyarakat (Linmas).',
+                'keywords' => ['linmas', 'perlindungan masyarakat', 'hansip', 'satlinmas'],
+                'sort_order' => 3,
+            ],
+            [
+                'opd_code' => 'satpolpp',
+                'name' => 'Pengaduan Pelayanan Satpol PP',
+                'code' => 'satpolpp_pengaduan',
+                'description' => 'Kanal pengaduan atas pelayanan Satuan Polisi Pamong Praja.',
+                'keywords' => ['pengaduan satpol', 'keluhan satpol', 'aduan satpol', 'lapor satpol'],
+                'sort_order' => 4,
+            ],
+        ];
+
+        $serviceModels = [];
+        foreach ($services as $serviceData) {
+            $opdCode = $serviceData['opd_code'];
+            unset($serviceData['opd_code']);
+            $serviceData['opd_id'] = $opdModels[$opdCode]->id;
+            $service = Service::create($serviceData);
+            $serviceModels[$service->code] = $service;
+        }
+
+        // =====================================================
+        // USERS: Admin, Supervisor, Officers per Service
+        // =====================================================
         User::create([
             'name' => 'Admin Bengkayang',
-            'email' => 'admin@mpp-bengkayang.go.id',
+            'email' => 'admin@siap-bengkayang.go.id',
             'password' => Hash::make('password123'),
             'role' => 'admin',
             'is_online' => false,
         ]);
 
-        // Create Supervisor
         User::create([
             'name' => 'Supervisor Bengkayang',
-            'email' => 'supervisor@mpp-bengkayang.go.id',
+            'email' => 'supervisor@siap-bengkayang.go.id',
             'password' => Hash::make('password123'),
             'role' => 'supervisor',
             'is_online' => false,
         ]);
 
-        // Create Officers per service
+        // Officer per layanan (1 officer tiap service)
         $officers = [
-            ['name' => 'Budi Santoso', 'email' => 'budi@mpp-bengkayang.go.id', 'service_code' => 'domain'],
-            ['name' => 'Siti Rahayu', 'email' => 'siti@mpp-bengkayang.go.id', 'service_code' => 'zoom'],
-            ['name' => 'Ahmad Fauzi', 'email' => 'ahmad@mpp-bengkayang.go.id', 'service_code' => 'dokumentasi'],
-            ['name' => 'Dewi Lestari', 'email' => 'dewi@mpp-bengkayang.go.id', 'service_code' => 'tte'],
-            ['name' => 'Eko Prasetyo', 'email' => 'eko@mpp-bengkayang.go.id', 'service_code' => 'alat'],
+            ['name' => 'Rina Kartika', 'email' => 'rina@siap-bengkayang.go.id', 'service_code' => 'pendidikan_paud'],
+            ['name' => 'Bayu Nugroho', 'email' => 'bayu@siap-bengkayang.go.id', 'service_code' => 'pendidikan_dasar'],
+            ['name' => 'Sari Wulandari', 'email' => 'sari@siap-bengkayang.go.id', 'service_code' => 'pendidikan_kesetaraan'],
+            ['name' => 'Dedi Kurniawan', 'email' => 'dedi@siap-bengkayang.go.id', 'service_code' => 'pendidikan_pengaduan'],
+            ['name' => 'Agus Salim', 'email' => 'agus@siap-bengkayang.go.id', 'service_code' => 'satpolpp_pengaduan_trantibum'],
+            ['name' => 'Hendra Wijaya', 'email' => 'hendra@siap-bengkayang.go.id', 'service_code' => 'satpolpp_pengamanan'],
+            ['name' => 'Lestari Ningsih', 'email' => 'lestari@siap-bengkayang.go.id', 'service_code' => 'satpolpp_linmas'],
+            ['name' => 'Fajar Ramadhan', 'email' => 'fajar@siap-bengkayang.go.id', 'service_code' => 'satpolpp_pengaduan'],
         ];
 
         foreach ($officers as $officerData) {
-            $service = Service::where('code', $officerData['service_code'])->first();
             User::create([
                 'name' => $officerData['name'],
                 'email' => $officerData['email'],
                 'password' => Hash::make('password123'),
                 'role' => 'officer',
-                'service_id' => $service->id,
+                'service_id' => $serviceModels[$officerData['service_code']]->id,
                 'is_online' => false,
                 'is_available' => true,
                 'max_concurrent_chats' => 5,
             ]);
         }
 
-        // Bot Responses - formulir (link GForm) per layanan + instruksi konfirmasi
-        // Ganti [LINK_GFORM_xxx] dengan link Google Form yang sebenarnya
+        // =====================================================
+        // BOT RESPONSES: Formulir (link GForm) untuk layanan
+        // bertipe formulir_then_escalate.
+        // Ganti [LINK_GFORM_xxx] dengan link Google Form sebenarnya.
+        // =====================================================
         $botResponses = [
-            ['trigger_keyword' => 'formulir', 'service_id' => 1, 'match_type' => 'exact', 'priority' => 10,
-             'response_text' => "📝 *Formulir Pengajuan Domain*\n\nSilakan isi formulir pengajuan melalui link berikut:\n\n🔗 [LINK_GFORM_DOMAIN]\n\nSetelah mengisi formulir, petugas akan memproses pengajuan Anda dalam 3-5 hari kerja.\n\n✅ *Setelah mengisi formulir, ketik 3 untuk konfirmasi ke petugas bahwa Anda sudah mengajukan.*"],
-
-            ['trigger_keyword' => 'formulir', 'service_id' => 2, 'match_type' => 'exact', 'priority' => 10,
-             'response_text' => "📝 *Formulir Pengajuan Zoom Meeting*\n\nSilakan isi formulir pengajuan melalui link berikut:\n\n🔗 [LINK_GFORM_ZOOM]\n\nPastikan mengajukan minimal H-2 hari kerja sebelum kegiatan.\n\n✅ *Setelah mengisi formulir, ketik 3 untuk konfirmasi ke petugas bahwa Anda sudah mengajukan.*"],
-
-            ['trigger_keyword' => 'formulir', 'service_id' => 3, 'match_type' => 'exact', 'priority' => 10,
-             'response_text' => "📝 *Formulir Pengajuan Fasilitasi Dokumentasi*\n\nSilakan isi formulir pengajuan melalui link berikut:\n\n🔗 [LINK_GFORM_DOKUMENTASI]\n\nPastikan mengajukan minimal H-3 hari kerja sebelum kegiatan.\n\n✅ *Setelah mengisi formulir, ketik 3 untuk konfirmasi ke petugas bahwa Anda sudah mengajukan.*"],
-
-            ['trigger_keyword' => 'formulir', 'service_id' => 4, 'match_type' => 'exact', 'priority' => 10,
-             'response_text' => "📝 *Formulir Pengajuan TTE*\n\nSilakan isi formulir pengajuan melalui link berikut:\n\n🔗 [LINK_GFORM_TTE]\n\nPastikan melengkapi persyaratan dokumen yang diperlukan.\n\n✅ *Setelah mengisi formulir, ketik 3 untuk konfirmasi ke petugas bahwa Anda sudah mengajukan.*"],
-
-            ['trigger_keyword' => 'formulir', 'service_id' => 5, 'match_type' => 'exact', 'priority' => 10,
-             'response_text' => "📝 *Formulir Pengajuan Peminjaman Alat & Operator*\n\nSilakan isi formulir pengajuan melalui link berikut:\n\n🔗 [LINK_GFORM_ALAT]\n\nPastikan mengajukan minimal H-3 hari kerja sebelum kegiatan.\n\n✅ *Setelah mengisi formulir, ketik 3 untuk konfirmasi ke petugas bahwa Anda sudah mengajukan.*"],
+            [
+                'service_code' => 'pendidikan_paud',
+                'trigger_keyword' => 'formulir',
+                'response_text' => "📝 *Formulir Layanan PAUD*\n\nSilakan isi formulir permohonan layanan Pendidikan Anak Usia Dini melalui link berikut:\n\n🔗 [LINK_GFORM_PAUD]\n\n✅ *Setelah mengisi formulir, ketik 3 untuk konfirmasi ke petugas bahwa Anda sudah mengajukan.*",
+            ],
+            [
+                'service_code' => 'pendidikan_dasar',
+                'trigger_keyword' => 'formulir',
+                'response_text' => "📝 *Formulir Layanan Pendidikan Dasar (SD/SMP)*\n\nSilakan isi formulir permohonan melalui link berikut:\n\n🔗 [LINK_GFORM_DIKDAS]\n\n✅ *Setelah mengisi formulir, ketik 3 untuk konfirmasi ke petugas bahwa Anda sudah mengajukan.*",
+            ],
+            [
+                'service_code' => 'pendidikan_kesetaraan',
+                'trigger_keyword' => 'formulir',
+                'response_text' => "📝 *Formulir Layanan Pendidikan Kesetaraan*\n\nSilakan isi formulir permohonan (Paket A/B/C) melalui link berikut:\n\n🔗 [LINK_GFORM_KESETARAAN]\n\n✅ *Setelah mengisi formulir, ketik 3 untuk konfirmasi ke petugas bahwa Anda sudah mengajukan.*",
+            ],
+            [
+                'service_code' => 'satpolpp_pengamanan',
+                'trigger_keyword' => 'formulir',
+                'response_text' => "📝 *Formulir Permohonan Bantuan Pengamanan Kegiatan*\n\nSilakan isi formulir permohonan pengamanan melalui link berikut:\n\n🔗 [LINK_GFORM_PENGAMANAN]\n\nPastikan mengajukan minimal H-3 hari kerja sebelum kegiatan.\n\n✅ *Setelah mengisi formulir, ketik 3 untuk konfirmasi ke petugas bahwa Anda sudah mengajukan.*",
+            ],
         ];
 
         foreach ($botResponses as $responseData) {
+            $serviceCode = $responseData['service_code'];
+            unset($responseData['service_code']);
+            $responseData['service_id'] = $serviceModels[$serviceCode]->id;
+            $responseData['match_type'] = 'exact';
+            $responseData['priority'] = 10;
             BotResponse::create($responseData);
         }
     }

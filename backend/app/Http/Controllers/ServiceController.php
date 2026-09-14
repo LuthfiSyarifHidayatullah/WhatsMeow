@@ -10,7 +10,8 @@ class ServiceController extends Controller
 {
     public function index(): JsonResponse
     {
-        $services = Service::withCount('officers')
+        $services = Service::with('opd')
+            ->withCount('officers')
             ->orderBy('sort_order')
             ->get();
 
@@ -20,6 +21,7 @@ class ServiceController extends Controller
     public function store(Request $request): JsonResponse
     {
         $request->validate([
+            'opd_id' => 'nullable|exists:opds,id',
             'name' => 'required|string|max:255',
             'code' => 'required|string|max:50|unique:services,code',
             'description' => 'nullable|string',
@@ -35,12 +37,13 @@ class ServiceController extends Controller
 
     public function show(Service $service): JsonResponse
     {
-        return response()->json($service->load('officers'));
+        return response()->json($service->load('opd', 'officers'));
     }
 
     public function update(Request $request, Service $service): JsonResponse
     {
         $request->validate([
+            'opd_id' => 'nullable|exists:opds,id',
             'name' => 'string|max:255',
             'code' => 'string|max:50|unique:services,code,' . $service->id,
             'description' => 'nullable|string',

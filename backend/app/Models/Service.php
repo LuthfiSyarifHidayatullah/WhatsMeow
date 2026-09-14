@@ -3,11 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Service extends Model
 {
     protected $fillable = [
+        'opd_id',
         'name',
         'code',
         'description',
@@ -20,6 +22,11 @@ class Service extends Model
         'keywords' => 'array',
         'is_active' => 'boolean',
     ];
+
+    public function opd(): BelongsTo
+    {
+        return $this->belongsTo(Opd::class);
+    }
 
     public function officers(): HasMany
     {
