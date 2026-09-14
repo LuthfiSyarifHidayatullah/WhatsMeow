@@ -31,28 +31,35 @@ class ChatbotService
         'pendidikan_paud' => [
             'title' => 'Pendidikan Anak Usia Dini (PAUD)',
             'items' => [
-                1 => ['label' => 'Formulir Permohonan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
-                2 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
+                1 => ['label' => 'Informasi Layanan & Persyaratan', 'action' => 'info', 'key' => 'syarat'],
+                2 => ['label' => 'Prosedur / Alur Pengajuan', 'action' => 'info', 'key' => 'prosedur'],
+                3 => ['label' => 'Formulir Permohonan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
+                4 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
             ],
         ],
         'pendidikan_dasar' => [
             'title' => 'Pendidikan Dasar (SD/SMP)',
             'items' => [
-                1 => ['label' => 'Formulir Permohonan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
-                2 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
+                1 => ['label' => 'Informasi Layanan & Persyaratan', 'action' => 'info', 'key' => 'syarat'],
+                2 => ['label' => 'Prosedur / Alur Pengajuan', 'action' => 'info', 'key' => 'prosedur'],
+                3 => ['label' => 'Formulir Permohonan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
+                4 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
             ],
         ],
         'pendidikan_kesetaraan' => [
             'title' => 'Pendidikan Kesetaraan',
             'items' => [
-                1 => ['label' => 'Formulir Permohonan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
-                2 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
+                1 => ['label' => 'Informasi Layanan & Persyaratan', 'action' => 'info', 'key' => 'syarat'],
+                2 => ['label' => 'Prosedur / Alur Pengajuan', 'action' => 'info', 'key' => 'prosedur'],
+                3 => ['label' => 'Formulir Permohonan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
+                4 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
             ],
         ],
         'pendidikan_pengaduan' => [
             'title' => 'Pengaduan Pelayanan Pendidikan',
             'items' => [
-                1 => ['label' => 'Sampaikan Pengaduan ke Petugas', 'action' => 'escalate'],
+                1 => ['label' => 'Informasi Cara Pengaduan', 'action' => 'info', 'key' => 'info'],
+                2 => ['label' => 'Sampaikan Pengaduan ke Petugas', 'action' => 'escalate'],
             ],
         ],
 
@@ -60,26 +67,31 @@ class ChatbotService
         'satpolpp_pengaduan_trantibum' => [
             'title' => 'Pengaduan Gangguan Ketertiban Umum',
             'items' => [
-                1 => ['label' => 'Sampaikan Pengaduan ke Petugas', 'action' => 'escalate'],
+                1 => ['label' => 'Informasi Cara Pengaduan', 'action' => 'info', 'key' => 'info'],
+                2 => ['label' => 'Sampaikan Pengaduan ke Petugas', 'action' => 'escalate'],
             ],
         ],
         'satpolpp_pengamanan' => [
             'title' => 'Permohonan Bantuan Pengamanan Kegiatan',
             'items' => [
-                1 => ['label' => 'Formulir Permohonan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
-                2 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
+                1 => ['label' => 'Informasi Layanan & Persyaratan', 'action' => 'info', 'key' => 'syarat'],
+                2 => ['label' => 'Prosedur / Alur Pengajuan', 'action' => 'info', 'key' => 'prosedur'],
+                3 => ['label' => 'Formulir Permohonan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
+                4 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
             ],
         ],
         'satpolpp_linmas' => [
             'title' => 'Informasi Perlindungan Masyarakat (Linmas)',
             'items' => [
-                1 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
+                1 => ['label' => 'Informasi Linmas', 'action' => 'info', 'key' => 'info'],
+                2 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
             ],
         ],
         'satpolpp_pengaduan' => [
             'title' => 'Pengaduan Pelayanan Satpol PP',
             'items' => [
-                1 => ['label' => 'Sampaikan Pengaduan ke Petugas', 'action' => 'escalate'],
+                1 => ['label' => 'Informasi Cara Pengaduan', 'action' => 'info', 'key' => 'info'],
+                2 => ['label' => 'Sampaikan Pengaduan ke Petugas', 'action' => 'escalate'],
             ],
         ],
     ];
@@ -260,11 +272,9 @@ class ChatbotService
         }
 
         if (!isset($menuDef['items'][$number])) {
-            // Shortcut "3" = konfirmasi setelah isi formulir → hubungi petugas
-            // (dipertahankan karena instruksi formulir meminta ketik "3").
-            if ($number === 3) {
-                return $this->escalateToOfficer($session, $session->service_id);
-            }
+            // Angka di luar daftar → tampilkan ulang sub-menu.
+            // (Konfirmasi setelah isi formulir ditangani via keyword "konfirmasi"
+            //  di handleBotMode, bukan angka, agar tidak bentrok dengan nomor menu.)
             return $this->getServiceSubMenu($session);
         }
 
@@ -309,7 +319,8 @@ class ChatbotService
         }
 
         $reply .= "\n\n---\n";
-        $reply .= "Setelah mengisi formulir, ketik *3* atau *konfirmasi* untuk terhubung ke petugas.";
+        $reply .= "Setelah mengisi formulir, ketik *konfirmasi* untuk terhubung ke petugas.\n";
+        $reply .= "Ketik *9* untuk kembali ke menu layanan.";
 
         $this->storeMessage($session, 'bot', $reply);
         return [
@@ -400,9 +411,19 @@ class ChatbotService
             $reply .= "Silakan hubungi petugas untuk informasi lebih lanjut.";
         }
 
+        // Tampilkan kembali daftar opsi layanan agar visitor mudah memilih
+        // langkah berikutnya (mis. lanjut ke formulir / hubungi petugas).
+        $menuDef = $this->serviceMenus[$service->code] ?? null;
         $reply .= "\n\n---\n";
-        $reply .= "Ketik *9* untuk kembali\n";
-        $reply .= "Ketik *0* untuk menu utama";
+        if ($menuDef) {
+            $reply .= "Pilih lagi:\n";
+            foreach ($menuDef['items'] as $num => $menuItem) {
+                $reply .= "{$num}. {$menuItem['label']}\n";
+            }
+            $reply .= "\n";
+        }
+        $reply .= "9. Kembali (pilih layanan lain)\n";
+        $reply .= "0. Menu Utama";
 
         $this->storeMessage($session, 'bot', $reply);
         return [

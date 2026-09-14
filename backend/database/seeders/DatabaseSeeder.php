@@ -164,30 +164,111 @@ class DatabaseSeeder extends Seeder
         }
 
         // =====================================================
-        // BOT RESPONSES: Formulir (link GForm) untuk layanan
-        // bertipe formulir_then_escalate.
-        // Ganti [LINK_GFORM_xxx] dengan link Google Form sebenarnya.
+        // BOT RESPONSES: konten sub-menu tiap layanan.
+        //   - trigger_keyword 'syarat'   => Informasi Layanan & Persyaratan
+        //   - trigger_keyword 'prosedur' => Prosedur / Alur Pengajuan
+        //   - trigger_keyword 'formulir' => Link Google Form
+        //   - trigger_keyword 'info'     => Informasi (layanan pengaduan/linmas)
+        //
+        // CATATAN: Teks di bawah adalah DRAFT dan dapat diedit sewaktu-waktu
+        // dari dashboard menu "Respons Bot". Ganti [LINK_GFORM_xxx] dengan
+        // link Google Form yang sebenarnya.
         // =====================================================
         $botResponses = [
+            // ---------- Dinas Pendidikan: PAUD ----------
+            [
+                'service_code' => 'pendidikan_paud',
+                'trigger_keyword' => 'syarat',
+                'response_text' => "ℹ️ *Layanan PAUD — Informasi & Persyaratan*\n\nLayanan Pendidikan Anak Usia Dini (PAUD) diperuntukkan bagi anak usia dini (umumnya 2–6 tahun).\n\n*Persyaratan umum:*\n1. Fotokopi Akta Kelahiran anak\n2. Fotokopi Kartu Keluarga (KK)\n3. Fotokopi KTP orang tua/wali\n4. Pasfoto anak terbaru\n\n_Persyaratan dapat berbeda pada tiap satuan PAUD. Untuk detail, silakan pilih Prosedur atau hubungi petugas._",
+            ],
+            [
+                'service_code' => 'pendidikan_paud',
+                'trigger_keyword' => 'prosedur',
+                'response_text' => "🧭 *Layanan PAUD — Prosedur / Alur*\n\n1. Siapkan berkas persyaratan.\n2. Isi formulir permohonan (menu Formulir Permohonan).\n3. Unggah/serahkan berkas sesuai petunjuk pada formulir.\n4. Petugas memverifikasi berkas Anda.\n5. Petugas menghubungi Anda untuk proses selanjutnya.\n\n_Estimasi verifikasi: 3–5 hari kerja._",
+            ],
             [
                 'service_code' => 'pendidikan_paud',
                 'trigger_keyword' => 'formulir',
-                'response_text' => "📝 *Formulir Layanan PAUD*\n\nSilakan isi formulir permohonan layanan Pendidikan Anak Usia Dini melalui link berikut:\n\n🔗 [LINK_GFORM_PAUD]\n\n✅ *Setelah mengisi formulir, ketik 3 untuk konfirmasi ke petugas bahwa Anda sudah mengajukan.*",
+                'response_text' => "📝 *Formulir Layanan PAUD*\n\nSilakan isi formulir permohonan layanan Pendidikan Anak Usia Dini melalui link berikut:\n\n🔗 [LINK_GFORM_PAUD]\n\n✅ *Setelah mengisi formulir, ketik konfirmasi untuk terhubung ke petugas.*",
+            ],
+
+            // ---------- Dinas Pendidikan: Pendidikan Dasar ----------
+            [
+                'service_code' => 'pendidikan_dasar',
+                'trigger_keyword' => 'syarat',
+                'response_text' => "ℹ️ *Pendidikan Dasar (SD/SMP) — Informasi & Persyaratan*\n\nLayanan pendidikan dasar diperuntukkan bagi anak usia wajib belajar (umumnya 7–15 tahun) jenjang SD dan SMP.\n\n*Persyaratan umum:*\n1. Fotokopi Akta Kelahiran\n2. Fotokopi Kartu Keluarga (KK)\n3. Fotokopi KTP orang tua/wali\n4. Ijazah/rapor jenjang sebelumnya (untuk perpindahan)\n\n_Untuk detail, silakan pilih Prosedur atau hubungi petugas._",
+            ],
+            [
+                'service_code' => 'pendidikan_dasar',
+                'trigger_keyword' => 'prosedur',
+                'response_text' => "🧭 *Pendidikan Dasar (SD/SMP) — Prosedur / Alur*\n\n1. Siapkan berkas persyaratan.\n2. Isi formulir permohonan (menu Formulir Permohonan).\n3. Serahkan berkas sesuai petunjuk pada formulir.\n4. Petugas memverifikasi berkas dan ketersediaan.\n5. Petugas menghubungi Anda untuk proses selanjutnya.\n\n_Estimasi verifikasi: 3–5 hari kerja._",
             ],
             [
                 'service_code' => 'pendidikan_dasar',
                 'trigger_keyword' => 'formulir',
-                'response_text' => "📝 *Formulir Layanan Pendidikan Dasar (SD/SMP)*\n\nSilakan isi formulir permohonan melalui link berikut:\n\n🔗 [LINK_GFORM_DIKDAS]\n\n✅ *Setelah mengisi formulir, ketik 3 untuk konfirmasi ke petugas bahwa Anda sudah mengajukan.*",
+                'response_text' => "📝 *Formulir Layanan Pendidikan Dasar (SD/SMP)*\n\nSilakan isi formulir permohonan melalui link berikut:\n\n🔗 [LINK_GFORM_DIKDAS]\n\n✅ *Setelah mengisi formulir, ketik konfirmasi untuk terhubung ke petugas.*",
+            ],
+
+            // ---------- Dinas Pendidikan: Kesetaraan ----------
+            [
+                'service_code' => 'pendidikan_kesetaraan',
+                'trigger_keyword' => 'syarat',
+                'response_text' => "ℹ️ *Pendidikan Kesetaraan — Informasi & Persyaratan*\n\nProgram kesetaraan (Paket A setara SD, Paket B setara SMP, Paket C setara SMA) bagi warga yang tidak menempuh pendidikan formal.\n\n*Persyaratan umum:*\n1. Fotokopi Kartu Keluarga (KK)\n2. Fotokopi KTP (bagi yang sudah memiliki)\n3. Ijazah terakhir yang dimiliki (bila ada)\n4. Pasfoto terbaru\n\n_Untuk detail, silakan pilih Prosedur atau hubungi petugas._",
+            ],
+            [
+                'service_code' => 'pendidikan_kesetaraan',
+                'trigger_keyword' => 'prosedur',
+                'response_text' => "🧭 *Pendidikan Kesetaraan — Prosedur / Alur*\n\n1. Tentukan program yang dituju (Paket A/B/C).\n2. Siapkan berkas persyaratan.\n3. Isi formulir permohonan (menu Formulir Permohonan).\n4. Petugas memverifikasi dan mengarahkan ke PKBM/satuan terdekat.\n5. Petugas menghubungi Anda untuk proses selanjutnya.\n\n_Estimasi verifikasi: 3–5 hari kerja._",
             ],
             [
                 'service_code' => 'pendidikan_kesetaraan',
                 'trigger_keyword' => 'formulir',
-                'response_text' => "📝 *Formulir Layanan Pendidikan Kesetaraan*\n\nSilakan isi formulir permohonan (Paket A/B/C) melalui link berikut:\n\n🔗 [LINK_GFORM_KESETARAAN]\n\n✅ *Setelah mengisi formulir, ketik 3 untuk konfirmasi ke petugas bahwa Anda sudah mengajukan.*",
+                'response_text' => "📝 *Formulir Layanan Pendidikan Kesetaraan*\n\nSilakan isi formulir permohonan (Paket A/B/C) melalui link berikut:\n\n🔗 [LINK_GFORM_KESETARAAN]\n\n✅ *Setelah mengisi formulir, ketik konfirmasi untuk terhubung ke petugas.*",
+            ],
+
+            // ---------- Dinas Pendidikan: Pengaduan ----------
+            [
+                'service_code' => 'pendidikan_pengaduan',
+                'trigger_keyword' => 'info',
+                'response_text' => "ℹ️ *Pengaduan Pelayanan Pendidikan — Informasi*\n\nKanal ini untuk menyampaikan keluhan/pengaduan terkait pelayanan pendidikan di Kabupaten Bengkayang.\n\n*Agar pengaduan cepat ditindaklanjuti, siapkan:*\n1. Uraian singkat masalah\n2. Nama sekolah/lokasi kejadian\n3. Waktu kejadian\n4. Bukti pendukung bila ada (foto/dokumen)\n\n_Setelah siap, pilih menu Sampaikan Pengaduan ke Petugas._",
+            ],
+
+            // ---------- Satpol PP: Pengaduan Ketertiban Umum ----------
+            [
+                'service_code' => 'satpolpp_pengaduan_trantibum',
+                'trigger_keyword' => 'info',
+                'response_text' => "ℹ️ *Pengaduan Gangguan Ketertiban Umum — Informasi*\n\nKanal ini untuk melaporkan gangguan ketertiban umum, seperti kebisingan, PKL liar, atau bangunan tanpa izin.\n\n*Agar cepat ditindaklanjuti, siapkan:*\n1. Jenis gangguan\n2. Lokasi/alamat kejadian\n3. Waktu kejadian\n4. Bukti pendukung bila ada (foto/video)\n\n_Untuk kejadian darurat, tetap hubungi aparat keamanan terdekat. Setelah siap, pilih menu Sampaikan Pengaduan ke Petugas._",
+            ],
+
+            // ---------- Satpol PP: Bantuan Pengamanan ----------
+            [
+                'service_code' => 'satpolpp_pengamanan',
+                'trigger_keyword' => 'syarat',
+                'response_text' => "ℹ️ *Bantuan Pengamanan Kegiatan — Informasi & Persyaratan*\n\nLayanan bantuan pengamanan Satpol PP untuk kegiatan/keramaian resmi.\n\n*Persyaratan umum:*\n1. Surat permohonan resmi dari penyelenggara\n2. Detail kegiatan (nama, tanggal, lokasi, estimasi peserta)\n3. Data narahubung penanggung jawab\n4. Izin keramaian bila diperlukan\n\n_Ajukan minimal H-3 hari kerja sebelum kegiatan._",
+            ],
+            [
+                'service_code' => 'satpolpp_pengamanan',
+                'trigger_keyword' => 'prosedur',
+                'response_text' => "🧭 *Bantuan Pengamanan Kegiatan — Prosedur / Alur*\n\n1. Siapkan surat permohonan & detail kegiatan.\n2. Isi formulir permohonan (menu Formulir Permohonan).\n3. Petugas menelaah permohonan dan ketersediaan personel.\n4. Petugas mengonfirmasi kesiapan pengamanan.\n5. Pelaksanaan pengamanan pada hari kegiatan.\n\n_Ajukan minimal H-3 hari kerja sebelum kegiatan._",
             ],
             [
                 'service_code' => 'satpolpp_pengamanan',
                 'trigger_keyword' => 'formulir',
-                'response_text' => "📝 *Formulir Permohonan Bantuan Pengamanan Kegiatan*\n\nSilakan isi formulir permohonan pengamanan melalui link berikut:\n\n🔗 [LINK_GFORM_PENGAMANAN]\n\nPastikan mengajukan minimal H-3 hari kerja sebelum kegiatan.\n\n✅ *Setelah mengisi formulir, ketik 3 untuk konfirmasi ke petugas bahwa Anda sudah mengajukan.*",
+                'response_text' => "📝 *Formulir Permohonan Bantuan Pengamanan Kegiatan*\n\nSilakan isi formulir permohonan pengamanan melalui link berikut:\n\n🔗 [LINK_GFORM_PENGAMANAN]\n\nPastikan mengajukan minimal H-3 hari kerja sebelum kegiatan.\n\n✅ *Setelah mengisi formulir, ketik konfirmasi untuk terhubung ke petugas.*",
+            ],
+
+            // ---------- Satpol PP: Linmas ----------
+            [
+                'service_code' => 'satpolpp_linmas',
+                'trigger_keyword' => 'info',
+                'response_text' => "ℹ️ *Perlindungan Masyarakat (Linmas) — Informasi*\n\nSatuan Perlindungan Masyarakat (Satlinmas) membantu penanganan ketentraman, ketertiban, serta penanggulangan bencana dan kegiatan sosial kemasyarakatan.\n\n*Informasi yang dapat ditanyakan:*\n1. Pendaftaran/keanggotaan anggota Linmas\n2. Permintaan bantuan Linmas untuk kegiatan\n3. Informasi pembinaan Linmas\n\n_Untuk pertanyaan lebih lanjut, pilih menu Hubungi Petugas._",
+            ],
+
+            // ---------- Satpol PP: Pengaduan Pelayanan ----------
+            [
+                'service_code' => 'satpolpp_pengaduan',
+                'trigger_keyword' => 'info',
+                'response_text' => "ℹ️ *Pengaduan Pelayanan Satpol PP — Informasi*\n\nKanal ini untuk menyampaikan keluhan/pengaduan terkait pelayanan Satuan Polisi Pamong Praja.\n\n*Agar pengaduan cepat ditindaklanjuti, siapkan:*\n1. Uraian singkat masalah\n2. Lokasi/waktu kejadian\n3. Bukti pendukung bila ada\n\n_Setelah siap, pilih menu Sampaikan Pengaduan ke Petugas._",
             ],
         ];
 
