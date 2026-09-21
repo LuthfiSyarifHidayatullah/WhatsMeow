@@ -14,7 +14,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // =====================================================
-        // OPD (Organisasi Perangkat Daerah) - Sample 2 Pengampu SPM
+        // OPD (Organisasi Perangkat Daerah) - Sample Pengampu SPM
         // =====================================================
         $opds = [
             [
@@ -28,6 +28,12 @@ class DatabaseSeeder extends Seeder
                 'code' => 'satpolpp',
                 'description' => 'Pengampu SPM Sub-Urusan Ketentraman dan Ketertiban Umum.',
                 'sort_order' => 2,
+            ],
+            [
+                'name' => 'Dinas Sosial',
+                'code' => 'sosial',
+                'description' => 'Pengampu SPM Bidang Sosial dan layanan kesejahteraan sosial.',
+                'sort_order' => 3,
             ],
         ];
 
@@ -108,6 +114,40 @@ class DatabaseSeeder extends Seeder
                 'keywords' => ['pengaduan satpol', 'keluhan satpol', 'aduan satpol', 'lapor satpol'],
                 'sort_order' => 4,
             ],
+
+            // --- Dinas Sosial ---
+            [
+                'opd_code' => 'sosial',
+                'name' => 'Pengaduan & Penanganan Kasus Perempuan dan Anak',
+                'code' => 'sosial_perempuan_anak',
+                'description' => 'Pengaduan dan penanganan kasus kekerasan/perlindungan terhadap perempuan dan anak.',
+                'keywords' => ['perempuan', 'anak', 'kekerasan', 'kdrt', 'perlindungan anak', 'pengaduan perempuan'],
+                'sort_order' => 1,
+            ],
+            [
+                'opd_code' => 'sosial',
+                'name' => 'Verifikasi & Validasi Data Kesejahteraan Sosial',
+                'code' => 'sosial_verval_dtks',
+                'description' => 'Layanan verifikasi dan validasi Data Terpadu Kesejahteraan Sosial (DTKS).',
+                'keywords' => ['dtks', 'verifikasi data', 'validasi data', 'kesejahteraan sosial', 'data sosial'],
+                'sort_order' => 2,
+            ],
+            [
+                'opd_code' => 'sosial',
+                'name' => 'Rekomendasi Bantuan Sosial & PBI-JKN',
+                'code' => 'sosial_bansos_pbijkn',
+                'description' => 'Rekomendasi bantuan sosial dan Penerima Bantuan Iuran Jaminan Kesehatan Nasional (PBI-JKN).',
+                'keywords' => ['bantuan sosial', 'bansos', 'pbi', 'jkn', 'kis', 'bpjs gratis', 'rekomendasi bantuan'],
+                'sort_order' => 3,
+            ],
+            [
+                'opd_code' => 'sosial',
+                'name' => 'Layanan Informasi Publik (PPID)',
+                'code' => 'sosial_ppid',
+                'description' => 'Layanan permohonan informasi publik melalui PPID Dinas Sosial.',
+                'keywords' => ['ppid', 'informasi publik', 'permohonan informasi', 'keterbukaan informasi'],
+                'sort_order' => 4,
+            ],
         ];
 
         $serviceModels = [];
@@ -148,6 +188,10 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Hendra Wijaya', 'email' => 'hendra@siap-bengkayang.go.id', 'service_code' => 'satpolpp_pengamanan'],
             ['name' => 'Lestari Ningsih', 'email' => 'lestari@siap-bengkayang.go.id', 'service_code' => 'satpolpp_linmas'],
             ['name' => 'Fajar Ramadhan', 'email' => 'fajar@siap-bengkayang.go.id', 'service_code' => 'satpolpp_pengaduan'],
+            ['name' => 'Maya Anggraini', 'email' => 'maya@siap-bengkayang.go.id', 'service_code' => 'sosial_perempuan_anak'],
+            ['name' => 'Rudi Hartono', 'email' => 'rudi@siap-bengkayang.go.id', 'service_code' => 'sosial_verval_dtks'],
+            ['name' => 'Nia Ramadhani', 'email' => 'nia@siap-bengkayang.go.id', 'service_code' => 'sosial_bansos_pbijkn'],
+            ['name' => 'Tono Sucipto', 'email' => 'tono@siap-bengkayang.go.id', 'service_code' => 'sosial_ppid'],
         ];
 
         foreach ($officers as $officerData) {
@@ -269,6 +313,64 @@ class DatabaseSeeder extends Seeder
                 'service_code' => 'satpolpp_pengaduan',
                 'trigger_keyword' => 'info',
                 'response_text' => "ℹ️ *Pengaduan Pelayanan Satpol PP — Informasi*\n\nKanal ini untuk menyampaikan keluhan/pengaduan terkait pelayanan Satuan Polisi Pamong Praja.\n\n*Agar pengaduan cepat ditindaklanjuti, siapkan:*\n1. Uraian singkat masalah\n2. Lokasi/waktu kejadian\n3. Bukti pendukung bila ada\n\n_Setelah siap, pilih menu Sampaikan Pengaduan ke Petugas._",
+            ],
+
+            // ---------- Dinas Sosial: Perempuan & Anak (sensitif → escalate) ----------
+            [
+                'service_code' => 'sosial_perempuan_anak',
+                'trigger_keyword' => 'info',
+                'response_text' => "ℹ️ *Pengaduan & Penanganan Kasus Perempuan dan Anak*\n\nLayanan ini untuk pengaduan dan penanganan kasus kekerasan atau yang membutuhkan perlindungan terhadap perempuan dan anak. Kerahasiaan Anda kami jaga. 🤝\n\n*Jika dalam kondisi darurat/mengancam jiwa, segera hubungi Kepolisian (110).*\n\nUntuk penanganan lebih lanjut, petugas kami siap membantu. Pilih menu *Hubungi Petugas* untuk terhubung langsung.",
+            ],
+
+            // ---------- Dinas Sosial: Verval DTKS ----------
+            [
+                'service_code' => 'sosial_verval_dtks',
+                'trigger_keyword' => 'syarat',
+                'response_text' => "ℹ️ *Verifikasi & Validasi Data Kesejahteraan Sosial (DTKS) — Informasi & Persyaratan*\n\nLayanan untuk mendaftar/memperbarui data pada Data Terpadu Kesejahteraan Sosial (DTKS).\n\n*Persyaratan umum:*\n1. Fotokopi KTP\n2. Fotokopi Kartu Keluarga (KK)\n3. Surat keterangan dari desa/kelurahan\n\n_Untuk detail, pilih Prosedur atau hubungi petugas._",
+            ],
+            [
+                'service_code' => 'sosial_verval_dtks',
+                'trigger_keyword' => 'prosedur',
+                'response_text' => "🧭 *Verifikasi & Validasi DTKS — Prosedur / Alur*\n\n1. Siapkan berkas persyaratan.\n2. Isi formulir permohonan (menu Formulir Permohonan).\n3. Data Anda diverifikasi oleh petugas & pihak desa/kelurahan.\n4. Hasil verval dimutakhirkan ke dalam DTKS.\n5. Petugas menghubungi Anda untuk proses selanjutnya.",
+            ],
+            [
+                'service_code' => 'sosial_verval_dtks',
+                'trigger_keyword' => 'formulir',
+                'response_text' => "📝 *Formulir Verifikasi & Validasi DTKS*\n\nSilakan isi formulir melalui link berikut:\n\n🔗 [LINK_GFORM_VERVAL_DTKS]\n\n✅ *Setelah mengisi formulir, ketik konfirmasi untuk terhubung ke petugas.*",
+            ],
+
+            // ---------- Dinas Sosial: Bansos & PBI-JKN ----------
+            [
+                'service_code' => 'sosial_bansos_pbijkn',
+                'trigger_keyword' => 'syarat',
+                'response_text' => "ℹ️ *Rekomendasi Bantuan Sosial & PBI-JKN — Informasi & Persyaratan*\n\nLayanan rekomendasi bantuan sosial dan pendaftaran Penerima Bantuan Iuran Jaminan Kesehatan Nasional (PBI-JKN).\n\n*Persyaratan umum:*\n1. Fotokopi KTP\n2. Fotokopi Kartu Keluarga (KK)\n3. Terdaftar dalam DTKS\n4. Surat keterangan tidak mampu (bila diperlukan)\n\n_Untuk detail, pilih Prosedur atau hubungi petugas._",
+            ],
+            [
+                'service_code' => 'sosial_bansos_pbijkn',
+                'trigger_keyword' => 'prosedur',
+                'response_text' => "🧭 *Rekomendasi Bantuan Sosial & PBI-JKN — Prosedur / Alur*\n\n1. Pastikan Anda terdaftar dalam DTKS.\n2. Siapkan berkas persyaratan.\n3. Isi formulir permohonan (menu Formulir Permohonan).\n4. Petugas memverifikasi kelayakan penerima.\n5. Petugas menerbitkan rekomendasi & menghubungi Anda.",
+            ],
+            [
+                'service_code' => 'sosial_bansos_pbijkn',
+                'trigger_keyword' => 'formulir',
+                'response_text' => "📝 *Formulir Rekomendasi Bantuan Sosial & PBI-JKN*\n\nSilakan isi formulir melalui link berikut:\n\n🔗 [LINK_GFORM_BANSOS_PBIJKN]\n\n✅ *Setelah mengisi formulir, ketik konfirmasi untuk terhubung ke petugas.*",
+            ],
+
+            // ---------- Dinas Sosial: PPID ----------
+            [
+                'service_code' => 'sosial_ppid',
+                'trigger_keyword' => 'syarat',
+                'response_text' => "ℹ️ *Layanan Informasi Publik (PPID) — Informasi & Persyaratan*\n\nLayanan permohonan informasi publik melalui Pejabat Pengelola Informasi dan Dokumentasi (PPID) Dinas Sosial.\n\n*Persyaratan umum:*\n1. Fotokopi KTP pemohon\n2. Rincian informasi yang dimohon\n3. Tujuan penggunaan informasi\n\n_Untuk detail, pilih Prosedur atau hubungi petugas._",
+            ],
+            [
+                'service_code' => 'sosial_ppid',
+                'trigger_keyword' => 'prosedur',
+                'response_text' => "🧭 *Layanan Informasi Publik (PPID) — Prosedur / Alur*\n\n1. Siapkan identitas & rincian informasi yang dimohon.\n2. Isi formulir permohonan informasi (menu Formulir Permohonan).\n3. PPID memproses permohonan sesuai ketentuan (maks. 10 hari kerja, dapat diperpanjang).\n4. Informasi diberikan atau disertai penjelasan bila dikecualikan.\n5. Petugas menghubungi Anda untuk proses selanjutnya.",
+            ],
+            [
+                'service_code' => 'sosial_ppid',
+                'trigger_keyword' => 'formulir',
+                'response_text' => "📝 *Formulir Permohonan Informasi Publik (PPID)*\n\nSilakan isi formulir melalui link berikut:\n\n🔗 [LINK_GFORM_PPID]\n\n✅ *Setelah mengisi formulir, ketik konfirmasi untuk terhubung ke petugas.*",
             ],
         ];
 

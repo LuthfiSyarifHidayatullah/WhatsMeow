@@ -94,6 +94,42 @@ class ChatbotService
                 2 => ['label' => 'Sampaikan Pengaduan ke Petugas', 'action' => 'escalate'],
             ],
         ],
+
+        // === Dinas Sosial ===
+        'sosial_perempuan_anak' => [
+            'title' => 'Pengaduan & Penanganan Kasus Perempuan dan Anak',
+            'items' => [
+                1 => ['label' => 'Informasi Layanan', 'action' => 'info', 'key' => 'info'],
+                2 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
+            ],
+        ],
+        'sosial_verval_dtks' => [
+            'title' => 'Verifikasi & Validasi Data Kesejahteraan Sosial',
+            'items' => [
+                1 => ['label' => 'Informasi Layanan & Persyaratan', 'action' => 'info', 'key' => 'syarat'],
+                2 => ['label' => 'Prosedur / Alur Pengajuan', 'action' => 'info', 'key' => 'prosedur'],
+                3 => ['label' => 'Formulir Permohonan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
+                4 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
+            ],
+        ],
+        'sosial_bansos_pbijkn' => [
+            'title' => 'Rekomendasi Bantuan Sosial & PBI-JKN',
+            'items' => [
+                1 => ['label' => 'Informasi Layanan & Persyaratan', 'action' => 'info', 'key' => 'syarat'],
+                2 => ['label' => 'Prosedur / Alur Pengajuan', 'action' => 'info', 'key' => 'prosedur'],
+                3 => ['label' => 'Formulir Permohonan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
+                4 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
+            ],
+        ],
+        'sosial_ppid' => [
+            'title' => 'Layanan Informasi Publik (PPID)',
+            'items' => [
+                1 => ['label' => 'Informasi Layanan & Persyaratan', 'action' => 'info', 'key' => 'syarat'],
+                2 => ['label' => 'Prosedur / Alur Pengajuan', 'action' => 'info', 'key' => 'prosedur'],
+                3 => ['label' => 'Formulir Permohonan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
+                4 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
+            ],
+        ],
     ];
 
     /**
