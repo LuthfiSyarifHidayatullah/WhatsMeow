@@ -35,6 +35,12 @@ class DatabaseSeeder extends Seeder
                 'description' => 'Pengampu SPM Bidang Sosial dan layanan kesejahteraan sosial.',
                 'sort_order' => 3,
             ],
+            [
+                'name' => 'Dinas Komunikasi dan Informatika',
+                'code' => 'kominfo',
+                'description' => 'Layanan teknologi informasi dan komunikasi Pemerintah Kabupaten Bengkayang.',
+                'sort_order' => 4,
+            ],
         ];
 
         $opdModels = [];
@@ -148,6 +154,48 @@ class DatabaseSeeder extends Seeder
                 'keywords' => ['ppid', 'informasi publik', 'permohonan informasi', 'keterbukaan informasi'],
                 'sort_order' => 4,
             ],
+
+            // --- Dinas Komunikasi dan Informatika ---
+            [
+                'opd_code' => 'kominfo',
+                'name' => 'Domain Bengkayang.go.id',
+                'code' => 'domain',
+                'description' => 'Layanan pengajuan dan pengelolaan subdomain bengkayang.go.id untuk OPD.',
+                'keywords' => ['domain', 'subdomain', 'bengkayang.go.id', 'website', 'hosting', 'dns'],
+                'sort_order' => 1,
+            ],
+            [
+                'opd_code' => 'kominfo',
+                'name' => 'Zoom Meeting/Video Conference',
+                'code' => 'zoom',
+                'description' => 'Layanan peminjaman akun Zoom Meeting dan Video Conference untuk kegiatan dinas.',
+                'keywords' => ['zoom', 'meeting', 'video conference', 'vicon', 'webinar', 'rapat online'],
+                'sort_order' => 2,
+            ],
+            [
+                'opd_code' => 'kominfo',
+                'name' => 'Fasilitasi Dokumentasi Kegiatan',
+                'code' => 'dokumentasi',
+                'description' => 'Layanan pengajuan fasilitasi dokumentasi kegiatan OPD (foto, video, liputan).',
+                'keywords' => ['dokumentasi', 'foto', 'video', 'liputan', 'fasilitasi', 'kegiatan'],
+                'sort_order' => 3,
+            ],
+            [
+                'opd_code' => 'kominfo',
+                'name' => 'Tanda Tangan Elektronik (TTE)',
+                'code' => 'tte',
+                'description' => 'Layanan pengajuan dan penerbitan Tanda Tangan Elektronik untuk ASN.',
+                'keywords' => ['tte', 'tanda tangan elektronik', 'digital signature', 'sertifikat elektronik', 'bsre'],
+                'sort_order' => 4,
+            ],
+            [
+                'opd_code' => 'kominfo',
+                'name' => 'Alat dan Operator Kegiatan',
+                'code' => 'alat',
+                'description' => 'Layanan peminjaman alat dokumentasi, multimedia, dan operator untuk kegiatan dinas.',
+                'keywords' => ['alat', 'operator', 'kamera', 'multimedia', 'sound system', 'peminjaman'],
+                'sort_order' => 5,
+            ],
         ];
 
         $serviceModels = [];
@@ -192,6 +240,11 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Rudi Hartono', 'email' => 'rudi@siap-bengkayang.go.id', 'service_code' => 'sosial_verval_dtks'],
             ['name' => 'Nia Ramadhani', 'email' => 'nia@siap-bengkayang.go.id', 'service_code' => 'sosial_bansos_pbijkn'],
             ['name' => 'Tono Sucipto', 'email' => 'tono@siap-bengkayang.go.id', 'service_code' => 'sosial_ppid'],
+            ['name' => 'Budi Santoso', 'email' => 'budi@siap-bengkayang.go.id', 'service_code' => 'domain'],
+            ['name' => 'Siti Rahayu', 'email' => 'siti@siap-bengkayang.go.id', 'service_code' => 'zoom'],
+            ['name' => 'Ahmad Fauzi', 'email' => 'ahmad@siap-bengkayang.go.id', 'service_code' => 'dokumentasi'],
+            ['name' => 'Dewi Lestari', 'email' => 'dewi@siap-bengkayang.go.id', 'service_code' => 'tte'],
+            ['name' => 'Eko Prasetyo', 'email' => 'eko@siap-bengkayang.go.id', 'service_code' => 'alat'],
         ];
 
         foreach ($officers as $officerData) {
@@ -371,6 +424,33 @@ class DatabaseSeeder extends Seeder
                 'service_code' => 'sosial_ppid',
                 'trigger_keyword' => 'formulir',
                 'response_text' => "📝 *Formulir Permohonan Informasi Publik (PPID)*\n\nSilakan isi formulir melalui link berikut:\n\n🔗 [LINK_GFORM_PPID]\n\n✅ *Setelah mengisi formulir, ketik konfirmasi untuk terhubung ke petugas.*",
+            ],
+
+            // ---------- Dinas Kominfo ----------
+            [
+                'service_code' => 'domain',
+                'trigger_keyword' => 'formulir',
+                'response_text' => "📝 *Formulir Pengajuan Domain*\n\nSilakan isi formulir pengajuan melalui link berikut:\n\n🔗 [LINK_GFORM_DOMAIN]\n\nSetelah mengisi formulir, petugas akan memproses pengajuan Anda dalam 3-5 hari kerja.\n\n✅ *Setelah mengisi formulir, ketik konfirmasi untuk terhubung ke petugas.*",
+            ],
+            [
+                'service_code' => 'zoom',
+                'trigger_keyword' => 'formulir',
+                'response_text' => "📝 *Formulir Pengajuan Zoom Meeting*\n\nSilakan isi formulir pengajuan melalui link berikut:\n\n🔗 [LINK_GFORM_ZOOM]\n\nPastikan mengajukan minimal H-2 hari kerja sebelum kegiatan.\n\n✅ *Setelah mengisi formulir, ketik konfirmasi untuk terhubung ke petugas.*",
+            ],
+            [
+                'service_code' => 'dokumentasi',
+                'trigger_keyword' => 'formulir',
+                'response_text' => "📝 *Formulir Pengajuan Fasilitasi Dokumentasi*\n\nSilakan isi formulir pengajuan melalui link berikut:\n\n🔗 [LINK_GFORM_DOKUMENTASI]\n\nPastikan mengajukan minimal H-3 hari kerja sebelum kegiatan.\n\n✅ *Setelah mengisi formulir, ketik konfirmasi untuk terhubung ke petugas.*",
+            ],
+            [
+                'service_code' => 'tte',
+                'trigger_keyword' => 'formulir',
+                'response_text' => "📝 *Formulir Pengajuan TTE*\n\nSilakan isi formulir pengajuan melalui link berikut:\n\n🔗 [LINK_GFORM_TTE]\n\nPastikan melengkapi persyaratan dokumen yang diperlukan.\n\n✅ *Setelah mengisi formulir, ketik konfirmasi untuk terhubung ke petugas.*",
+            ],
+            [
+                'service_code' => 'alat',
+                'trigger_keyword' => 'formulir',
+                'response_text' => "📝 *Formulir Pengajuan Peminjaman Alat & Operator*\n\nSilakan isi formulir pengajuan melalui link berikut:\n\n🔗 [LINK_GFORM_ALAT]\n\nPastikan mengajukan minimal H-3 hari kerja sebelum kegiatan.\n\n✅ *Setelah mengisi formulir, ketik konfirmasi untuk terhubung ke petugas.*",
             ],
         ];
 
