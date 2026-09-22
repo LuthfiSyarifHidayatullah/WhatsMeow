@@ -130,6 +130,48 @@ class ChatbotService
                 4 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
             ],
         ],
+
+        // === Dinas Komunikasi dan Informatika ===
+        // (Dikembalikan seperti desain asli, termasuk menu "Informasi Jadwal".)
+        'domain' => [
+            'title' => 'Domain Bengkayang.go.id',
+            'items' => [
+                1 => ['label' => 'Formulir Pengajuan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
+                2 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
+            ],
+        ],
+        'zoom' => [
+            'title' => 'Zoom Meeting/Video Conference',
+            'items' => [
+                1 => ['label' => 'Informasi Jadwal', 'action' => 'schedule'],
+                2 => ['label' => 'Formulir Pengajuan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
+                3 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
+            ],
+        ],
+        'dokumentasi' => [
+            'title' => 'Fasilitasi Dokumentasi Kegiatan',
+            'items' => [
+                1 => ['label' => 'Informasi Jadwal', 'action' => 'schedule'],
+                2 => ['label' => 'Formulir Pengajuan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
+                3 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
+            ],
+        ],
+        'tte' => [
+            'title' => 'Tanda Tangan Elektronik (TTE)',
+            'items' => [
+                1 => ['label' => 'Informasi Jadwal', 'action' => 'schedule'],
+                2 => ['label' => 'Formulir Pengajuan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
+                3 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
+            ],
+        ],
+        'alat' => [
+            'title' => 'Alat dan Operator Kegiatan',
+            'items' => [
+                1 => ['label' => 'Informasi Jadwal', 'action' => 'schedule'],
+                2 => ['label' => 'Formulir Pengajuan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
+                3 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
+            ],
+        ],
     ];
 
     /**
