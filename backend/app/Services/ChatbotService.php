@@ -28,8 +28,8 @@ class ChatbotService
      */
     private array $serviceMenus = [
         // === Dinas Pendidikan ===
-        'pendidikan_paud' => [
-            'title' => 'Pendidikan Anak Usia Dini (PAUD)',
+        'disdik_dapodik' => [
+            'title' => 'Data Dapodik',
             'items' => [
                 1 => ['label' => 'Informasi Layanan & Persyaratan', 'action' => 'info', 'key' => 'syarat'],
                 2 => ['label' => 'Prosedur / Alur Pengajuan', 'action' => 'info', 'key' => 'prosedur'],
@@ -37,8 +37,8 @@ class ChatbotService
                 4 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
             ],
         ],
-        'pendidikan_dasar' => [
-            'title' => 'Pendidikan Dasar (SD/SMP)',
+        'disdik_sertifikasi_guru' => [
+            'title' => 'Sertifikasi Guru',
             'items' => [
                 1 => ['label' => 'Informasi Layanan & Persyaratan', 'action' => 'info', 'key' => 'syarat'],
                 2 => ['label' => 'Prosedur / Alur Pengajuan', 'action' => 'info', 'key' => 'prosedur'],
@@ -46,8 +46,44 @@ class ChatbotService
                 4 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
             ],
         ],
-        'pendidikan_kesetaraan' => [
-            'title' => 'Pendidikan Kesetaraan',
+        'disdik_tpp_guru' => [
+            'title' => 'TPP Guru',
+            'items' => [
+                1 => ['label' => 'Informasi Layanan & Persyaratan', 'action' => 'info', 'key' => 'syarat'],
+                2 => ['label' => 'Prosedur / Alur Pengajuan', 'action' => 'info', 'key' => 'prosedur'],
+                3 => ['label' => 'Formulir Permohonan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
+                4 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
+            ],
+        ],
+        'disdik_revitalisasi' => [
+            'title' => 'Revitalisasi Sekolah',
+            'items' => [
+                1 => ['label' => 'Informasi Layanan & Persyaratan', 'action' => 'info', 'key' => 'syarat'],
+                2 => ['label' => 'Prosedur / Alur Pengajuan', 'action' => 'info', 'key' => 'prosedur'],
+                3 => ['label' => 'Formulir Permohonan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
+                4 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
+            ],
+        ],
+        'disdik_ijazah' => [
+            'title' => 'Surat Keterangan Pengganti Ijazah (Hilang/Rusak)',
+            'items' => [
+                1 => ['label' => 'Informasi Layanan & Persyaratan', 'action' => 'info', 'key' => 'syarat'],
+                2 => ['label' => 'Prosedur / Alur Pengajuan', 'action' => 'info', 'key' => 'prosedur'],
+                3 => ['label' => 'Formulir Permohonan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
+                4 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
+            ],
+        ],
+        'disdik_pindah_sekolah' => [
+            'title' => 'Surat Rekomendasi Pindah Sekolah',
+            'items' => [
+                1 => ['label' => 'Informasi Layanan & Persyaratan', 'action' => 'info', 'key' => 'syarat'],
+                2 => ['label' => 'Prosedur / Alur Pengajuan', 'action' => 'info', 'key' => 'prosedur'],
+                3 => ['label' => 'Formulir Permohonan', 'action' => 'formulir_then_escalate', 'key' => 'formulir'],
+                4 => ['label' => 'Hubungi Petugas', 'action' => 'escalate'],
+            ],
+        ],
+        'disdik_izin_sekolah' => [
+            'title' => 'Izin Pembangunan Sekolah Baru',
             'items' => [
                 1 => ['label' => 'Informasi Layanan & Persyaratan', 'action' => 'info', 'key' => 'syarat'],
                 2 => ['label' => 'Prosedur / Alur Pengajuan', 'action' => 'info', 'key' => 'prosedur'],

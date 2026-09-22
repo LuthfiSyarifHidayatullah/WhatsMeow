@@ -56,27 +56,59 @@ class DatabaseSeeder extends Seeder
             // --- Dinas Pendidikan ---
             [
                 'opd_code' => 'pendidikan',
-                'name' => 'Pendidikan Anak Usia Dini (PAUD)',
-                'code' => 'pendidikan_paud',
-                'description' => 'Layanan pendidikan anak usia dini (PAUD) sesuai SPM Bidang Pendidikan.',
-                'keywords' => ['paud', 'anak usia dini', 'tk', 'taman kanak', 'kelompok bermain'],
+                'name' => 'Data Dapodik',
+                'code' => 'disdik_dapodik',
+                'description' => 'Layanan terkait Data Pokok Pendidikan (Dapodik) untuk sekolah/operator.',
+                'keywords' => ['dapodik', 'data pokok', 'npsn', 'data sekolah', 'operator dapodik'],
                 'sort_order' => 1,
             ],
             [
                 'opd_code' => 'pendidikan',
-                'name' => 'Pendidikan Dasar (SD/SMP)',
-                'code' => 'pendidikan_dasar',
-                'description' => 'Layanan pendidikan dasar jenjang SD dan SMP sesuai SPM Bidang Pendidikan.',
-                'keywords' => ['pendidikan dasar', 'sd', 'smp', 'sekolah dasar', 'sekolah menengah pertama'],
+                'name' => 'Sertifikasi Guru',
+                'code' => 'disdik_sertifikasi_guru',
+                'description' => 'Layanan terkait sertifikasi guru (pendaftaran, informasi, tindak lanjut).',
+                'keywords' => ['sertifikasi guru', 'sertifikasi', 'ppg', 'pendidikan profesi guru'],
                 'sort_order' => 2,
             ],
             [
                 'opd_code' => 'pendidikan',
-                'name' => 'Pendidikan Kesetaraan',
-                'code' => 'pendidikan_kesetaraan',
-                'description' => 'Layanan pendidikan kesetaraan (Paket A/B/C) sesuai SPM Bidang Pendidikan.',
-                'keywords' => ['kesetaraan', 'paket a', 'paket b', 'paket c', 'kejar paket'],
+                'name' => 'TPP Guru',
+                'code' => 'disdik_tpp_guru',
+                'description' => 'Layanan terkait Tunjangan Profesi/Penghasilan Pegawai (TPP) guru.',
+                'keywords' => ['tpp', 'tunjangan guru', 'tunjangan profesi', 'tpp guru'],
                 'sort_order' => 3,
+            ],
+            [
+                'opd_code' => 'pendidikan',
+                'name' => 'Revitalisasi Sekolah',
+                'code' => 'disdik_revitalisasi',
+                'description' => 'Layanan permohonan/informasi revitalisasi (rehabilitasi/pembangunan) sarana sekolah.',
+                'keywords' => ['revitalisasi', 'rehab sekolah', 'renovasi sekolah', 'sarana prasarana'],
+                'sort_order' => 4,
+            ],
+            [
+                'opd_code' => 'pendidikan',
+                'name' => 'Surat Keterangan Pengganti Ijazah (Hilang/Rusak)',
+                'code' => 'disdik_ijazah',
+                'description' => 'Layanan penerbitan surat keterangan pengganti ijazah yang hilang atau rusak.',
+                'keywords' => ['ijazah', 'ijazah hilang', 'ijazah rusak', 'ganti ijazah', 'surat pengganti ijazah'],
+                'sort_order' => 5,
+            ],
+            [
+                'opd_code' => 'pendidikan',
+                'name' => 'Surat Rekomendasi Pindah Sekolah',
+                'code' => 'disdik_pindah_sekolah',
+                'description' => 'Layanan penerbitan surat rekomendasi mutasi/pindah sekolah siswa.',
+                'keywords' => ['pindah sekolah', 'mutasi siswa', 'rekomendasi pindah', 'mutasi sekolah'],
+                'sort_order' => 6,
+            ],
+            [
+                'opd_code' => 'pendidikan',
+                'name' => 'Izin Pembangunan Sekolah Baru',
+                'code' => 'disdik_izin_sekolah',
+                'description' => 'Layanan permohonan izin pendirian/pembangunan sekolah baru.',
+                'keywords' => ['izin sekolah', 'pendirian sekolah', 'sekolah baru', 'izin pembangunan sekolah'],
+                'sort_order' => 7,
             ],
             [
                 'opd_code' => 'pendidikan',
@@ -84,7 +116,7 @@ class DatabaseSeeder extends Seeder
                 'code' => 'pendidikan_pengaduan',
                 'description' => 'Kanal pengaduan atas pelayanan pendidikan di Kabupaten Bengkayang.',
                 'keywords' => ['pengaduan pendidikan', 'keluhan sekolah', 'aduan pendidikan', 'lapor pendidikan'],
-                'sort_order' => 4,
+                'sort_order' => 8,
             ],
 
             // --- Satuan Polisi Pamong Praja ---
@@ -228,10 +260,14 @@ class DatabaseSeeder extends Seeder
 
         // Officer per layanan (1 officer tiap service)
         $officers = [
-            ['name' => 'Rina Kartika', 'email' => 'rina@siap-bengkayang.go.id', 'service_code' => 'pendidikan_paud'],
-            ['name' => 'Bayu Nugroho', 'email' => 'bayu@siap-bengkayang.go.id', 'service_code' => 'pendidikan_dasar'],
-            ['name' => 'Sari Wulandari', 'email' => 'sari@siap-bengkayang.go.id', 'service_code' => 'pendidikan_kesetaraan'],
-            ['name' => 'Dedi Kurniawan', 'email' => 'dedi@siap-bengkayang.go.id', 'service_code' => 'pendidikan_pengaduan'],
+            ['name' => 'Rina Kartika', 'email' => 'rina@siap-bengkayang.go.id', 'service_code' => 'disdik_dapodik'],
+            ['name' => 'Bayu Nugroho', 'email' => 'bayu@siap-bengkayang.go.id', 'service_code' => 'disdik_sertifikasi_guru'],
+            ['name' => 'Sari Wulandari', 'email' => 'sari@siap-bengkayang.go.id', 'service_code' => 'disdik_tpp_guru'],
+            ['name' => 'Dedi Kurniawan', 'email' => 'dedi@siap-bengkayang.go.id', 'service_code' => 'disdik_revitalisasi'],
+            ['name' => 'Wahyu Pratama', 'email' => 'wahyu@siap-bengkayang.go.id', 'service_code' => 'disdik_ijazah'],
+            ['name' => 'Indah Permata', 'email' => 'indah@siap-bengkayang.go.id', 'service_code' => 'disdik_pindah_sekolah'],
+            ['name' => 'Yoga Saputra', 'email' => 'yoga@siap-bengkayang.go.id', 'service_code' => 'disdik_izin_sekolah'],
+            ['name' => 'Citra Dewanti', 'email' => 'citra@siap-bengkayang.go.id', 'service_code' => 'pendidikan_pengaduan'],
             ['name' => 'Agus Salim', 'email' => 'agus@siap-bengkayang.go.id', 'service_code' => 'satpolpp_pengaduan_trantibum'],
             ['name' => 'Hendra Wijaya', 'email' => 'hendra@siap-bengkayang.go.id', 'service_code' => 'satpolpp_pengamanan'],
             ['name' => 'Lestari Ningsih', 'email' => 'lestari@siap-bengkayang.go.id', 'service_code' => 'satpolpp_linmas'],
@@ -272,55 +308,123 @@ class DatabaseSeeder extends Seeder
         // link Google Form yang sebenarnya.
         // =====================================================
         $botResponses = [
-            // ---------- Dinas Pendidikan: PAUD ----------
+            // ---------- Dinas Pendidikan: Data Dapodik ----------
             [
-                'service_code' => 'pendidikan_paud',
+                'service_code' => 'disdik_dapodik',
                 'trigger_keyword' => 'syarat',
-                'response_text' => "ℹ️ *Layanan PAUD — Informasi & Persyaratan*\n\nLayanan Pendidikan Anak Usia Dini (PAUD) diperuntukkan bagi anak usia dini (umumnya 2–6 tahun).\n\n*Persyaratan umum:*\n1. Fotokopi Akta Kelahiran anak\n2. Fotokopi Kartu Keluarga (KK)\n3. Fotokopi KTP orang tua/wali\n4. Pasfoto anak terbaru\n\n_Persyaratan dapat berbeda pada tiap satuan PAUD. Untuk detail, silakan pilih Prosedur atau hubungi petugas._",
+                'response_text' => "ℹ️ *Data Dapodik — Informasi & Persyaratan*\n\nLayanan terkait Data Pokok Pendidikan (Dapodik) untuk sekolah/operator (pemutakhiran data, kendala sinkronisasi, dsb).\n\n*Persyaratan umum:*\n1. NPSN sekolah\n2. Nama & data operator sekolah\n3. Surat tugas operator (bila diperlukan)\n\n_Untuk detail, silakan pilih Prosedur atau hubungi petugas._",
             ],
             [
-                'service_code' => 'pendidikan_paud',
+                'service_code' => 'disdik_dapodik',
                 'trigger_keyword' => 'prosedur',
-                'response_text' => "🧭 *Layanan PAUD — Prosedur / Alur*\n\n1. Siapkan berkas persyaratan.\n2. Isi formulir permohonan (menu Formulir Permohonan).\n3. Unggah/serahkan berkas sesuai petunjuk pada formulir.\n4. Petugas memverifikasi berkas Anda.\n5. Petugas menghubungi Anda untuk proses selanjutnya.\n\n_Estimasi verifikasi: 3–5 hari kerja._",
+                'response_text' => "🧭 *Data Dapodik — Prosedur / Alur*\n\n1. Siapkan data sekolah & operator.\n2. Isi formulir permohonan (menu Formulir Permohonan).\n3. Petugas memverifikasi & menindaklanjuti kendala Dapodik.\n4. Petugas menghubungi Anda untuk proses selanjutnya.",
             ],
             [
-                'service_code' => 'pendidikan_paud',
+                'service_code' => 'disdik_dapodik',
                 'trigger_keyword' => 'formulir',
-                'response_text' => "📝 *Formulir Layanan PAUD*\n\nSilakan isi formulir permohonan layanan Pendidikan Anak Usia Dini melalui link berikut:\n\n🔗 [LINK_GFORM_PAUD]\n\n✅ *Setelah mengisi formulir, ketik konfirmasi untuk terhubung ke petugas.*",
+                'response_text' => "📝 *Formulir Layanan Data Dapodik*\n\nSilakan isi formulir melalui link berikut:\n\n🔗 [LINK_GFORM_DAPODIK]\n\n✅ *Setelah mengisi formulir, ketik konfirmasi untuk terhubung ke petugas.*",
             ],
 
-            // ---------- Dinas Pendidikan: Pendidikan Dasar ----------
+            // ---------- Dinas Pendidikan: Sertifikasi Guru ----------
             [
-                'service_code' => 'pendidikan_dasar',
+                'service_code' => 'disdik_sertifikasi_guru',
                 'trigger_keyword' => 'syarat',
-                'response_text' => "ℹ️ *Pendidikan Dasar (SD/SMP) — Informasi & Persyaratan*\n\nLayanan pendidikan dasar diperuntukkan bagi anak usia wajib belajar (umumnya 7–15 tahun) jenjang SD dan SMP.\n\n*Persyaratan umum:*\n1. Fotokopi Akta Kelahiran\n2. Fotokopi Kartu Keluarga (KK)\n3. Fotokopi KTP orang tua/wali\n4. Ijazah/rapor jenjang sebelumnya (untuk perpindahan)\n\n_Untuk detail, silakan pilih Prosedur atau hubungi petugas._",
+                'response_text' => "ℹ️ *Sertifikasi Guru — Informasi & Persyaratan*\n\nLayanan informasi & tindak lanjut sertifikasi guru (termasuk PPG).\n\n*Persyaratan umum:*\n1. Fotokopi KTP\n2. NUPTK / NIP (bila ada)\n3. SK mengajar / surat tugas\n4. Ijazah terakhir\n\n_Untuk detail, silakan pilih Prosedur atau hubungi petugas._",
             ],
             [
-                'service_code' => 'pendidikan_dasar',
+                'service_code' => 'disdik_sertifikasi_guru',
                 'trigger_keyword' => 'prosedur',
-                'response_text' => "🧭 *Pendidikan Dasar (SD/SMP) — Prosedur / Alur*\n\n1. Siapkan berkas persyaratan.\n2. Isi formulir permohonan (menu Formulir Permohonan).\n3. Serahkan berkas sesuai petunjuk pada formulir.\n4. Petugas memverifikasi berkas dan ketersediaan.\n5. Petugas menghubungi Anda untuk proses selanjutnya.\n\n_Estimasi verifikasi: 3–5 hari kerja._",
+                'response_text' => "🧭 *Sertifikasi Guru — Prosedur / Alur*\n\n1. Siapkan berkas persyaratan.\n2. Isi formulir permohonan (menu Formulir Permohonan).\n3. Petugas memverifikasi kelengkapan & kelayakan.\n4. Petugas menghubungi Anda untuk proses selanjutnya.",
             ],
             [
-                'service_code' => 'pendidikan_dasar',
+                'service_code' => 'disdik_sertifikasi_guru',
                 'trigger_keyword' => 'formulir',
-                'response_text' => "📝 *Formulir Layanan Pendidikan Dasar (SD/SMP)*\n\nSilakan isi formulir permohonan melalui link berikut:\n\n🔗 [LINK_GFORM_DIKDAS]\n\n✅ *Setelah mengisi formulir, ketik konfirmasi untuk terhubung ke petugas.*",
+                'response_text' => "📝 *Formulir Layanan Sertifikasi Guru*\n\nSilakan isi formulir melalui link berikut:\n\n🔗 [LINK_GFORM_SERTIFIKASI_GURU]\n\n✅ *Setelah mengisi formulir, ketik konfirmasi untuk terhubung ke petugas.*",
             ],
 
-            // ---------- Dinas Pendidikan: Kesetaraan ----------
+            // ---------- Dinas Pendidikan: TPP Guru ----------
             [
-                'service_code' => 'pendidikan_kesetaraan',
+                'service_code' => 'disdik_tpp_guru',
                 'trigger_keyword' => 'syarat',
-                'response_text' => "ℹ️ *Pendidikan Kesetaraan — Informasi & Persyaratan*\n\nProgram kesetaraan (Paket A setara SD, Paket B setara SMP, Paket C setara SMA) bagi warga yang tidak menempuh pendidikan formal.\n\n*Persyaratan umum:*\n1. Fotokopi Kartu Keluarga (KK)\n2. Fotokopi KTP (bagi yang sudah memiliki)\n3. Ijazah terakhir yang dimiliki (bila ada)\n4. Pasfoto terbaru\n\n_Untuk detail, silakan pilih Prosedur atau hubungi petugas._",
+                'response_text' => "ℹ️ *TPP Guru — Informasi & Persyaratan*\n\nLayanan terkait Tunjangan Profesi/Penghasilan Pegawai (TPP) guru.\n\n*Persyaratan umum:*\n1. Fotokopi KTP\n2. NIP/NUPTK\n3. SK & data kepegawaian\n4. Dokumen pendukung tunjangan\n\n_Untuk detail, silakan pilih Prosedur atau hubungi petugas._",
             ],
             [
-                'service_code' => 'pendidikan_kesetaraan',
+                'service_code' => 'disdik_tpp_guru',
                 'trigger_keyword' => 'prosedur',
-                'response_text' => "🧭 *Pendidikan Kesetaraan — Prosedur / Alur*\n\n1. Tentukan program yang dituju (Paket A/B/C).\n2. Siapkan berkas persyaratan.\n3. Isi formulir permohonan (menu Formulir Permohonan).\n4. Petugas memverifikasi dan mengarahkan ke PKBM/satuan terdekat.\n5. Petugas menghubungi Anda untuk proses selanjutnya.\n\n_Estimasi verifikasi: 3–5 hari kerja._",
+                'response_text' => "🧭 *TPP Guru — Prosedur / Alur*\n\n1. Siapkan berkas persyaratan.\n2. Isi formulir permohonan (menu Formulir Permohonan).\n3. Petugas memverifikasi data kepegawaian & kelayakan.\n4. Petugas menghubungi Anda untuk proses selanjutnya.",
             ],
             [
-                'service_code' => 'pendidikan_kesetaraan',
+                'service_code' => 'disdik_tpp_guru',
                 'trigger_keyword' => 'formulir',
-                'response_text' => "📝 *Formulir Layanan Pendidikan Kesetaraan*\n\nSilakan isi formulir permohonan (Paket A/B/C) melalui link berikut:\n\n🔗 [LINK_GFORM_KESETARAAN]\n\n✅ *Setelah mengisi formulir, ketik konfirmasi untuk terhubung ke petugas.*",
+                'response_text' => "📝 *Formulir Layanan TPP Guru*\n\nSilakan isi formulir melalui link berikut:\n\n🔗 [LINK_GFORM_TPP_GURU]\n\n✅ *Setelah mengisi formulir, ketik konfirmasi untuk terhubung ke petugas.*",
+            ],
+
+            // ---------- Dinas Pendidikan: Revitalisasi Sekolah ----------
+            [
+                'service_code' => 'disdik_revitalisasi',
+                'trigger_keyword' => 'syarat',
+                'response_text' => "ℹ️ *Revitalisasi Sekolah — Informasi & Persyaratan*\n\nLayanan permohonan/informasi revitalisasi (rehabilitasi/pembangunan) sarana & prasarana sekolah.\n\n*Persyaratan umum:*\n1. Data sekolah (NPSN)\n2. Proposal/usulan revitalisasi\n3. Foto kondisi sarana yang diusulkan\n4. Surat pengantar dari sekolah\n\n_Untuk detail, silakan pilih Prosedur atau hubungi petugas._",
+            ],
+            [
+                'service_code' => 'disdik_revitalisasi',
+                'trigger_keyword' => 'prosedur',
+                'response_text' => "🧭 *Revitalisasi Sekolah — Prosedur / Alur*\n\n1. Siapkan proposal & data pendukung.\n2. Isi formulir permohonan (menu Formulir Permohonan).\n3. Petugas melakukan verifikasi/peninjauan.\n4. Petugas menghubungi Anda untuk proses selanjutnya.",
+            ],
+            [
+                'service_code' => 'disdik_revitalisasi',
+                'trigger_keyword' => 'formulir',
+                'response_text' => "📝 *Formulir Layanan Revitalisasi Sekolah*\n\nSilakan isi formulir melalui link berikut:\n\n🔗 [LINK_GFORM_REVITALISASI]\n\n✅ *Setelah mengisi formulir, ketik konfirmasi untuk terhubung ke petugas.*",
+            ],
+
+            // ---------- Dinas Pendidikan: Surat Pengganti Ijazah ----------
+            [
+                'service_code' => 'disdik_ijazah',
+                'trigger_keyword' => 'syarat',
+                'response_text' => "ℹ️ *Surat Keterangan Pengganti Ijazah — Informasi & Persyaratan*\n\nLayanan penerbitan surat keterangan pengganti ijazah yang hilang atau rusak.\n\n*Persyaratan umum:*\n1. Fotokopi KTP pemohon\n2. Surat keterangan kehilangan dari Kepolisian (untuk ijazah hilang)\n3. Ijazah yang rusak (untuk ijazah rusak)\n4. Fotokopi ijazah lama bila masih ada\n5. Pasfoto terbaru\n\n_Untuk detail, silakan pilih Prosedur atau hubungi petugas._",
+            ],
+            [
+                'service_code' => 'disdik_ijazah',
+                'trigger_keyword' => 'prosedur',
+                'response_text' => "🧭 *Surat Keterangan Pengganti Ijazah — Prosedur / Alur*\n\n1. Siapkan berkas persyaratan (termasuk surat kehilangan bila hilang).\n2. Isi formulir permohonan (menu Formulir Permohonan).\n3. Petugas memverifikasi data ke arsip/sekolah asal.\n4. Surat keterangan pengganti diterbitkan.\n5. Petugas menghubungi Anda untuk pengambilan.",
+            ],
+            [
+                'service_code' => 'disdik_ijazah',
+                'trigger_keyword' => 'formulir',
+                'response_text' => "📝 *Formulir Surat Keterangan Pengganti Ijazah*\n\nSilakan isi formulir melalui link berikut:\n\n🔗 [LINK_GFORM_IJAZAH]\n\n✅ *Setelah mengisi formulir, ketik konfirmasi untuk terhubung ke petugas.*",
+            ],
+
+            // ---------- Dinas Pendidikan: Rekomendasi Pindah Sekolah ----------
+            [
+                'service_code' => 'disdik_pindah_sekolah',
+                'trigger_keyword' => 'syarat',
+                'response_text' => "ℹ️ *Surat Rekomendasi Pindah Sekolah — Informasi & Persyaratan*\n\nLayanan penerbitan surat rekomendasi mutasi/pindah sekolah siswa.\n\n*Persyaratan umum:*\n1. Fotokopi KK & KTP orang tua\n2. Surat keterangan pindah dari sekolah asal\n3. Rapor terakhir siswa\n4. Data sekolah tujuan\n\n_Untuk detail, silakan pilih Prosedur atau hubungi petugas._",
+            ],
+            [
+                'service_code' => 'disdik_pindah_sekolah',
+                'trigger_keyword' => 'prosedur',
+                'response_text' => "🧭 *Surat Rekomendasi Pindah Sekolah — Prosedur / Alur*\n\n1. Siapkan berkas persyaratan.\n2. Isi formulir permohonan (menu Formulir Permohonan).\n3. Petugas memverifikasi data siswa & sekolah tujuan.\n4. Surat rekomendasi diterbitkan.\n5. Petugas menghubungi Anda untuk proses selanjutnya.",
+            ],
+            [
+                'service_code' => 'disdik_pindah_sekolah',
+                'trigger_keyword' => 'formulir',
+                'response_text' => "📝 *Formulir Surat Rekomendasi Pindah Sekolah*\n\nSilakan isi formulir melalui link berikut:\n\n🔗 [LINK_GFORM_PINDAH_SEKOLAH]\n\n✅ *Setelah mengisi formulir, ketik konfirmasi untuk terhubung ke petugas.*",
+            ],
+
+            // ---------- Dinas Pendidikan: Izin Pembangunan Sekolah Baru ----------
+            [
+                'service_code' => 'disdik_izin_sekolah',
+                'trigger_keyword' => 'syarat',
+                'response_text' => "ℹ️ *Izin Pembangunan Sekolah Baru — Informasi & Persyaratan*\n\nLayanan permohonan izin pendirian/pembangunan sekolah baru.\n\n*Persyaratan umum:*\n1. Proposal pendirian sekolah\n2. Data yayasan/penyelenggara\n3. Bukti kepemilikan/penguasaan lahan\n4. Studi kelayakan & dokumen pendukung\n\n_Untuk detail, silakan pilih Prosedur atau hubungi petugas._",
+            ],
+            [
+                'service_code' => 'disdik_izin_sekolah',
+                'trigger_keyword' => 'prosedur',
+                'response_text' => "🧭 *Izin Pembangunan Sekolah Baru — Prosedur / Alur*\n\n1. Siapkan proposal & dokumen pendukung.\n2. Isi formulir permohonan (menu Formulir Permohonan).\n3. Petugas melakukan verifikasi & peninjauan lapangan.\n4. Petugas menghubungi Anda untuk proses selanjutnya.",
+            ],
+            [
+                'service_code' => 'disdik_izin_sekolah',
+                'trigger_keyword' => 'formulir',
+                'response_text' => "📝 *Formulir Izin Pembangunan Sekolah Baru*\n\nSilakan isi formulir melalui link berikut:\n\n🔗 [LINK_GFORM_IZIN_SEKOLAH]\n\n✅ *Setelah mengisi formulir, ketik konfirmasi untuk terhubung ke petugas.*",
             ],
 
             // ---------- Dinas Pendidikan: Pengaduan ----------
