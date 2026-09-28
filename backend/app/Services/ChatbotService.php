@@ -343,6 +343,11 @@ class ChatbotService
             return $this->getOpdMenu($session);
         }
 
+        // Opsi terakhir (jumlah OPD + 1) = Pengaduan umum → ke admin/supervisor
+        if ($number === $opds->count() + 1) {
+            return $this->escalateToAdmin($session);
+        }
+
         return $this->getMainMenu($session);
     }
 
@@ -569,7 +574,12 @@ class ChatbotService
             $reply .= ($index + 1) . ". {$opd->name}\n";
         }
 
-        $reply .= "\nKetik angka sesuai instansi yang dituju.";
+        // Opsi Pengaduan umum di akhir daftar (nomor = jumlah OPD + 1).
+        // Langsung diteruskan ke admin/supervisor tanpa memilih instansi.
+        $pengaduanNumber = $opds->count() + 1;
+        $reply .= "{$pengaduanNumber}. 📢 Pengaduan\n";
+
+        $reply .= "\nKetik angka sesuai pilihan Anda.";
 
         if ($session) {
             $this->storeMessage($session, 'bot', $reply);
@@ -707,6 +717,68 @@ class ChatbotService
             'action' => 'waiting',
             'session_id' => $session->session_id,
             'service_id' => $session->service_id,
+        ];
+    }
+
+    /**
+     * Escalate pengaduan umum ke admin/supervisor (tanpa terikat OPD/layanan).
+     * Dipakai untuk opsi "Pengaduan" di menu utama.
+     */
+    private function escalateToAdmin(ChatSession $session): array
+    {
+        // Tandai sebagai pengaduan umum; tidak terikat service tertentu.
+        $session->update([
+            'service_id' => null,
+            'current_opd_id' => null,
+            'topic' => 'Pengaduan Umum',
+        ]);
+
+        $admin = $this->findAvailableAdmin();
+
+        if ($admin) {
+            $session->update([
+                'status' => 'active',
+                'officer_id' => $admin->id,
+                'escalated_at' => now(),
+                'assigned_at' => now(),
+            ]);
+            $admin->increment('current_chat_count');
+
+            $reply = "✅ Anda telah terhubung dengan petugas pengaduan kami.\n\n";
+            $reply .= "👤 *{$admin->name}*\n";
+            $reply .= "📌 Layanan Pengaduan\n\n";
+            $reply .= "Silakan sampaikan pengaduan Anda secara jelas.\n";
+            $reply .= "Ketik *selesai* jika sudah selesai.";
+
+            $this->storeMessage($session, 'bot', $reply);
+            event(new ChatEscalatedEvent($session));
+
+            return [
+                'reply' => $reply,
+                'action' => 'escalate',
+                'session_id' => $session->session_id,
+                'service_id' => null,
+                'officer_id' => $admin->id,
+            ];
+        }
+
+        // Tidak ada admin/supervisor tersedia → masuk antrian
+        $session->update([
+            'status' => 'waiting',
+            'escalated_at' => now(),
+        ]);
+
+        $reply = "⏳ Mohon maaf, saat ini petugas pengaduan sedang tidak tersedia.\n";
+        $reply .= "Pengaduan Anda masuk dalam antrian dan akan segera ditindaklanjuti.\n\n";
+        $reply .= "Silakan tuliskan pengaduan Anda, kami akan meneruskannya ke petugas.";
+
+        $this->storeMessage($session, 'bot', $reply);
+
+        return [
+            'reply' => $reply,
+            'action' => 'waiting',
+            'session_id' => $session->session_id,
+            'service_id' => null,
         ];
     }
 
@@ -945,6 +1017,20 @@ class ChatbotService
             return (clone $query)->where('service_id', $serviceId)->orderBy('current_chat_count')->first();
         }
         return $query->orderBy('current_chat_count')->first();
+    }
+
+    /**
+     * Cari admin/supervisor yang online & masih punya kapasitas chat.
+     * Dipakai untuk menangani pengaduan umum dari menu utama.
+     */
+    private function findAvailableAdmin(): ?User
+    {
+        return User::whereIn('role', ['admin', 'supervisor'])
+            ->where('is_online', true)
+            ->where('is_available', true)
+            ->whereColumn('current_chat_count', '<', 'max_concurrent_chats')
+            ->orderBy('current_chat_count')
+            ->first();
     }
 
     private function storeMessage(ChatSession $session, string $senderType, string $content, ?int $userId = null): Message
