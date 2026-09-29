@@ -190,27 +190,19 @@ class DatabaseSeeder extends Seeder
             // --- Dinas Komunikasi dan Informatika ---
             [
                 'opd_code' => 'kominfo',
-                'name' => 'Domain Bengkayang.go.id',
+                'name' => 'Domain Bengkayangkab.go.id',
                 'code' => 'domain',
-                'description' => 'Layanan pengajuan dan pengelolaan subdomain bengkayang.go.id untuk OPD.',
-                'keywords' => ['domain', 'subdomain', 'bengkayang.go.id', 'website', 'hosting', 'dns'],
+                'description' => 'Layanan pengajuan dan pengelolaan subdomain bengkayangkab.go.id untuk OPD.',
+                'keywords' => ['domain', 'subdomain', 'bengkayangkab.go.id', 'website', 'hosting', 'dns'],
                 'sort_order' => 1,
             ],
             [
                 'opd_code' => 'kominfo',
-                'name' => 'Zoom Meeting/Video Conference',
-                'code' => 'zoom',
-                'description' => 'Layanan peminjaman akun Zoom Meeting dan Video Conference untuk kegiatan dinas.',
-                'keywords' => ['zoom', 'meeting', 'video conference', 'vicon', 'webinar', 'rapat online'],
+                'name' => 'Permohonan Informasi',
+                'code' => 'kominfo_permohonan_informasi',
+                'description' => 'Layanan permohonan informasi publik melalui Dinas Kominfo.',
+                'keywords' => ['permohonan informasi', 'informasi publik', 'ppid', 'keterbukaan informasi'],
                 'sort_order' => 2,
-            ],
-            [
-                'opd_code' => 'kominfo',
-                'name' => 'Fasilitasi Dokumentasi Kegiatan',
-                'code' => 'dokumentasi',
-                'description' => 'Layanan pengajuan fasilitasi dokumentasi kegiatan OPD (foto, video, liputan).',
-                'keywords' => ['dokumentasi', 'foto', 'video', 'liputan', 'fasilitasi', 'kegiatan'],
-                'sort_order' => 3,
             ],
             [
                 'opd_code' => 'kominfo',
@@ -218,15 +210,15 @@ class DatabaseSeeder extends Seeder
                 'code' => 'tte',
                 'description' => 'Layanan pengajuan dan penerbitan Tanda Tangan Elektronik untuk ASN.',
                 'keywords' => ['tte', 'tanda tangan elektronik', 'digital signature', 'sertifikat elektronik', 'bsre'],
-                'sort_order' => 4,
+                'sort_order' => 3,
             ],
             [
                 'opd_code' => 'kominfo',
-                'name' => 'Alat dan Operator Kegiatan',
-                'code' => 'alat',
-                'description' => 'Layanan peminjaman alat dokumentasi, multimedia, dan operator untuk kegiatan dinas.',
-                'keywords' => ['alat', 'operator', 'kamera', 'multimedia', 'sound system', 'peminjaman'],
-                'sort_order' => 5,
+                'name' => 'Lapor SP4N',
+                'code' => 'kominfo_sp4n',
+                'description' => 'Layanan pengaduan masyarakat melalui SP4N-LAPOR!.',
+                'keywords' => ['sp4n', 'lapor', 'pengaduan', 'aduan', 'sp4n-lapor'],
+                'sort_order' => 4,
             ],
         ];
 
@@ -277,10 +269,9 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Nia Ramadhani', 'email' => 'nia@siap-bengkayang.go.id', 'service_code' => 'sosial_bansos_pbijkn'],
             ['name' => 'Tono Sucipto', 'email' => 'tono@siap-bengkayang.go.id', 'service_code' => 'sosial_ppid'],
             ['name' => 'Budi Santoso', 'email' => 'budi@siap-bengkayang.go.id', 'service_code' => 'domain'],
-            ['name' => 'Siti Rahayu', 'email' => 'siti@siap-bengkayang.go.id', 'service_code' => 'zoom'],
-            ['name' => 'Ahmad Fauzi', 'email' => 'ahmad@siap-bengkayang.go.id', 'service_code' => 'dokumentasi'],
+            ['name' => 'Siti Rahayu', 'email' => 'siti@siap-bengkayang.go.id', 'service_code' => 'kominfo_permohonan_informasi'],
             ['name' => 'Dewi Lestari', 'email' => 'dewi@siap-bengkayang.go.id', 'service_code' => 'tte'],
-            ['name' => 'Eko Prasetyo', 'email' => 'eko@siap-bengkayang.go.id', 'service_code' => 'alat'],
+            ['name' => 'Eko Prasetyo', 'email' => 'eko@siap-bengkayang.go.id', 'service_code' => 'kominfo_sp4n'],
         ];
 
         foreach ($officers as $officerData) {
@@ -531,30 +522,27 @@ class DatabaseSeeder extends Seeder
             ],
 
             // ---------- Dinas Kominfo ----------
+            // Tiap layanan punya opsi "Informasi Pengajuan" (key 'info') yang
+            // teksnya dapat diedit dari dashboard menu "Respons Bot".
             [
                 'service_code' => 'domain',
-                'trigger_keyword' => 'formulir',
-                'response_text' => "📝 *Formulir Pengajuan Domain*\n\nSilakan isi formulir pengajuan melalui link berikut:\n\n🔗 [LINK_GFORM_DOMAIN]\n\nSetelah mengisi formulir, petugas akan memproses pengajuan Anda dalam 3-5 hari kerja.\n\n✅ *Setelah mengisi formulir, ketik konfirmasi untuk terhubung ke petugas.*",
+                'trigger_keyword' => 'info',
+                'response_text' => "ℹ️ *Domain Bengkayangkab.go.id — Informasi Pengajuan*\n\nLayanan pengajuan subdomain resmi bengkayangkab.go.id untuk OPD.\n\n*Persyaratan umum:*\n1. Surat permohonan resmi dari OPD\n2. Nama subdomain yang diinginkan\n3. Data narahubung (nama, no. HP, email)\n\n*Prosedur singkat:*\n1. Siapkan berkas di atas.\n2. Pilih menu Hubungi Petugas untuk mengajukan.\n3. Petugas memverifikasi & memproses (3-5 hari kerja).\n\n_Untuk mengajukan, pilih menu Hubungi Petugas._",
             ],
             [
-                'service_code' => 'zoom',
-                'trigger_keyword' => 'formulir',
-                'response_text' => "📝 *Formulir Pengajuan Zoom Meeting*\n\nSilakan isi formulir pengajuan melalui link berikut:\n\n🔗 [LINK_GFORM_ZOOM]\n\nPastikan mengajukan minimal H-2 hari kerja sebelum kegiatan.\n\n✅ *Setelah mengisi formulir, ketik konfirmasi untuk terhubung ke petugas.*",
-            ],
-            [
-                'service_code' => 'dokumentasi',
-                'trigger_keyword' => 'formulir',
-                'response_text' => "📝 *Formulir Pengajuan Fasilitasi Dokumentasi*\n\nSilakan isi formulir pengajuan melalui link berikut:\n\n🔗 [LINK_GFORM_DOKUMENTASI]\n\nPastikan mengajukan minimal H-3 hari kerja sebelum kegiatan.\n\n✅ *Setelah mengisi formulir, ketik konfirmasi untuk terhubung ke petugas.*",
+                'service_code' => 'kominfo_permohonan_informasi',
+                'trigger_keyword' => 'info',
+                'response_text' => "ℹ️ *Permohonan Informasi — Informasi Pengajuan*\n\nLayanan permohonan informasi publik melalui PPID Dinas Kominfo.\n\n*Persyaratan umum:*\n1. Fotokopi/foto KTP pemohon\n2. Rincian informasi yang dimohon\n3. Tujuan penggunaan informasi\n\n*Prosedur singkat:*\n1. Siapkan berkas di atas.\n2. Pilih menu Hubungi Petugas untuk mengajukan.\n3. Permohonan diproses sesuai ketentuan (maks. 10 hari kerja, dapat diperpanjang).\n\n_Untuk mengajukan, pilih menu Hubungi Petugas._",
             ],
             [
                 'service_code' => 'tte',
-                'trigger_keyword' => 'formulir',
-                'response_text' => "📝 *Formulir Pengajuan TTE*\n\nSilakan isi formulir pengajuan melalui link berikut:\n\n🔗 [LINK_GFORM_TTE]\n\nPastikan melengkapi persyaratan dokumen yang diperlukan.\n\n✅ *Setelah mengisi formulir, ketik konfirmasi untuk terhubung ke petugas.*",
+                'trigger_keyword' => 'info',
+                'response_text' => "ℹ️ *Tanda Tangan Elektronik (TTE) — Informasi Pengajuan*\n\nLayanan penerbitan Tanda Tangan Elektronik untuk ASN.\n\n*Persyaratan umum:*\n1. Fotokopi KTP & SK ASN\n2. Email dinas aktif\n3. Nomor HP aktif\n\n*Prosedur singkat:*\n1. Siapkan berkas di atas.\n2. Pilih menu Hubungi Petugas untuk mengajukan.\n3. Petugas memproses penerbitan TTE Anda.\n\n_Untuk mengajukan, pilih menu Hubungi Petugas._",
             ],
             [
-                'service_code' => 'alat',
-                'trigger_keyword' => 'formulir',
-                'response_text' => "📝 *Formulir Pengajuan Peminjaman Alat & Operator*\n\nSilakan isi formulir pengajuan melalui link berikut:\n\n🔗 [LINK_GFORM_ALAT]\n\nPastikan mengajukan minimal H-3 hari kerja sebelum kegiatan.\n\n✅ *Setelah mengisi formulir, ketik konfirmasi untuk terhubung ke petugas.*",
+                'service_code' => 'kominfo_sp4n',
+                'trigger_keyword' => 'info',
+                'response_text' => "ℹ️ *Lapor SP4N — Informasi Pengajuan*\n\nSP4N-LAPOR! adalah kanal pengaduan pelayanan publik nasional.\n\n*Agar aduan cepat ditindaklanjuti, siapkan:*\n1. Uraian singkat masalah/aduan\n2. Lokasi & waktu kejadian\n3. Bukti pendukung bila ada (foto/dokumen)\n\n*Prosedur singkat:*\n1. Siapkan informasi di atas.\n2. Pilih menu Hubungi Petugas untuk menyampaikan aduan.\n3. Petugas meneruskan & menindaklanjuti melalui SP4N-LAPOR!.\n\n_Untuk menyampaikan aduan, pilih menu Hubungi Petugas._",
             ],
         ];
 
