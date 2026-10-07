@@ -554,5 +554,12 @@ class DatabaseSeeder extends Seeder
             $responseData['priority'] = 10;
             BotResponse::create($responseData);
         }
+
+        // =====================================================
+        // SUB-MENU LAYANAN (service_menu_items)
+        // Pindahkan definisi sub-menu ke tabel agar dapat dikelola dari
+        // dashboard. Teks diambil dari bot_responses yang baru dibuat di atas.
+        // =====================================================
+        $this->call(ServiceMenuItemSeeder::class);
     }
 }

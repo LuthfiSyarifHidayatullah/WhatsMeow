@@ -43,6 +43,12 @@ class Service extends Model
         return $this->hasMany(BotResponse::class);
     }
 
+    public function menuItems(): HasMany
+    {
+        return $this->hasMany(ServiceMenuItem::class)
+            ->orderBy('position');
+    }
+
     public function availableOfficers()
     {
         return $this->officers()

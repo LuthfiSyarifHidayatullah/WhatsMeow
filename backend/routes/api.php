@@ -9,6 +9,7 @@ use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OpdController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\ServiceMenuItemController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -62,6 +63,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Services Management
     Route::apiResource('services', ServiceController::class);
+
+    // Sub-menu (pilihan di dalam layanan) Management
+    Route::apiResource('service-menu-items', ServiceMenuItemController::class)
+        ->parameters(['service-menu-items' => 'serviceMenuItem']);
 
     // Users/Officers Management
     Route::apiResource('users', UserController::class);
