@@ -449,6 +449,13 @@ class ChatbotService
             return $this->getServiceSubMenu($session);
         }
 
+        // Angka 8 = pintasan "Hubungi Petugas" yang seragam di semua layar
+        // info/formulir/jadwal (lihat navFooter()). Hanya berlaku bila layanan
+        // tidak memakai posisi 8 sebagai item menu sungguhan.
+        if ($number === 8 && !isset($menuDef['items'][8])) {
+            return $this->escalateToOfficer($session, $session->service_id);
+        }
+
         if (!isset($menuDef['items'][$number])) {
             // Angka di luar daftar → tampilkan ulang sub-menu.
             // (Konfirmasi setelah isi formulir ditangani via keyword "konfirmasi"
@@ -478,6 +485,27 @@ class ChatbotService
     }
 
     /**
+     * Footer navigasi standar untuk layar info/formulir/jadwal.
+     *
+     * Seragam di semua layanan agar warga mudah mengingat:
+     *   8 = Hubungi Petugas
+     *   9 = Kembali (pilih layanan lain)
+     *   0 = Menu Utama
+     *
+     * Angka 8 ditangani di handleSubMenuSelection() sebagai eskalasi ke petugas,
+     * terlepas dari nomor menu "Hubungi Petugas" pada masing-masing layanan.
+     */
+    private function navFooter(): string
+    {
+        $footer = "\n\n---\n";
+        $footer .= "Ketik angka:\n";
+        $footer .= "8. Hubungi Petugas\n";
+        $footer .= "9. Kembali (pilih layanan lain)\n";
+        $footer .= "0. Menu Utama";
+        return $footer;
+    }
+
+    /**
      * Show formulir link, then wait for visitor to confirm before escalating
      */
     private function showFormulirThenEscalate(ChatSession $session, Service $service, array $item): array
@@ -493,8 +521,8 @@ class ChatbotService
         }
 
         $reply .= "\n\n---\n";
-        $reply .= "Setelah mengisi formulir, ketik *konfirmasi* untuk terhubung ke petugas.\n";
-        $reply .= "Ketik *9* untuk kembali ke menu layanan.";
+        $reply .= "Konfirmasi ke petugas bersifat *opsional*. Jika setelah mengisi formulir Anda ingin terhubung dengan petugas, ketik *konfirmasi*.";
+        $reply .= $this->navFooter();
 
         $this->storeMessage($session, 'bot', $reply);
         return [
@@ -551,9 +579,7 @@ class ChatbotService
             }
         }
 
-        $reply .= "\n---\n";
-        $reply .= "Ketik *9* untuk kembali\n";
-        $reply .= "Ketik *0* untuk menu utama";
+        $reply .= $this->navFooter();
 
         $this->storeMessage($session, 'bot', $reply);
         return [
@@ -579,19 +605,8 @@ class ChatbotService
             $reply .= "Silakan hubungi petugas untuk informasi lebih lanjut.";
         }
 
-        // Tampilkan kembali daftar opsi layanan agar visitor mudah memilih
-        // langkah berikutnya (mis. lanjut ke formulir / hubungi petugas).
-        $menuDef = $this->resolveMenuDef($service);
-        $reply .= "\n\n---\n";
-        if ($menuDef) {
-            $reply .= "Pilih lagi:\n";
-            foreach ($menuDef['items'] as $num => $menuItem) {
-                $reply .= "{$num}. {$menuItem['label']}\n";
-            }
-            $reply .= "\n";
-        }
-        $reply .= "9. Kembali (pilih layanan lain)\n";
-        $reply .= "0. Menu Utama";
+        // Setelah informasi, tampilkan navigasi standar (8/9/0).
+        $reply .= $this->navFooter();
 
         $this->storeMessage($session, 'bot', $reply);
         return [
