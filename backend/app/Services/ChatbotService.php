@@ -8,6 +8,7 @@ use App\Models\ChatSession;
 use App\Models\Message;
 use App\Models\Opd;
 use App\Models\Service;
+use App\Models\ServiceMenuItem;
 use App\Models\User;
 use App\Events\NewMessageEvent;
 use App\Events\ChatEscalatedEvent;
@@ -201,6 +202,68 @@ class ChatbotService
     ];
 
     /**
+     * Resolusi definisi sub-menu untuk sebuah layanan.
+     *
+     * Prioritas:
+     *   1. Item sub-menu dari database (tabel service_menu_items) → dapat
+     *      dikelola dari dashboard.
+     *   2. Fallback ke definisi hard-coded $serviceMenus (untuk layanan lama
+     *      yang belum dimigrasikan).
+     *
+     * Mengembalikan array berbentuk:
+     *   ['items' => [ <position> => ['label','action','response_text'?], ... ]]
+     * atau null jika layanan tidak punya sub-menu sama sekali.
+     */
+    private function resolveMenuDef(Service $service): ?array
+    {
+        $dbItems = ServiceMenuItem::where('service_id', $service->id)
+            ->where('is_active', true)
+            ->orderBy('position')
+            ->get();
+
+        if ($dbItems->isNotEmpty()) {
+            $items = [];
+            foreach ($dbItems as $row) {
+                $items[(int) $row->position] = [
+                    'label' => $row->label,
+                    'action' => $row->action,
+                    'response_text' => $row->response_text,
+                ];
+            }
+            return ['items' => $items];
+        }
+
+        // Fallback ke definisi lama (hard-coded).
+        return $this->serviceMenus[$service->code] ?? null;
+    }
+
+    /**
+     * Ambil teks respons untuk item info/formulir.
+     *
+     * Jika item berasal dari DB dan punya response_text, pakai itu. Jika tidak,
+     * fallback ke tabel bot_responses berdasarkan 'key' (perilaku lama).
+     * Mengembalikan null jika tidak ada teks yang tersedia.
+     */
+    private function resolveItemResponseText(Service $service, array $item): ?string
+    {
+        if (!empty($item['response_text'])) {
+            return $item['response_text'];
+        }
+
+        $key = $item['key'] ?? null;
+        if (!$key) {
+            return null;
+        }
+
+        $botResponse = BotResponse::where('service_id', $service->id)
+            ->where('trigger_keyword', $key)
+            ->where('is_active', true)
+            ->first();
+
+        return $botResponse?->response_text;
+    }
+
+    /**
      * Process incoming message from WhatsApp bot
      */
     public function processIncomingMessage(string $sender, string $chatJID, string $text): array
@@ -376,7 +439,7 @@ class ChatbotService
             return $this->getMainMenu($session);
         }
 
-        $menuDef = $this->serviceMenus[$service->code] ?? null;
+        $menuDef = $this->resolveMenuDef($service);
 
         // Fallback: layanan tanpa definisi menu → angka 1 = hubungi petugas
         if (!$menuDef) {
@@ -419,14 +482,10 @@ class ChatbotService
      */
     private function showFormulirThenEscalate(ChatSession $session, Service $service, array $item): array
     {
-        $key = $item['key'];
-        $botResponse = BotResponse::where('service_id', $service->id)
-            ->where('trigger_keyword', $key)
-            ->where('is_active', true)
-            ->first();
+        $responseText = $this->resolveItemResponseText($service, $item);
 
-        if ($botResponse) {
-            $reply = $botResponse->response_text;
+        if ($responseText) {
+            $reply = $responseText;
         } else {
             $reply = "📝 *Formulir Pengajuan {$service->name}*\n\n";
             $reply .= "Silakan isi formulir pengajuan. Link formulir belum tersedia.\n";
@@ -510,16 +569,10 @@ class ChatbotService
      */
     private function showSubMenuInfo(ChatSession $session, Service $service, array $item): array
     {
-        $key = $item['key'];
+        $responseText = $this->resolveItemResponseText($service, $item);
 
-        // Find bot response matching this service + key
-        $botResponse = BotResponse::where('service_id', $service->id)
-            ->where('trigger_keyword', $key)
-            ->where('is_active', true)
-            ->first();
-
-        if ($botResponse) {
-            $reply = $botResponse->response_text;
+        if ($responseText) {
+            $reply = $responseText;
         } else {
             $reply = "ℹ️ *{$item['label']}*\n\n";
             $reply .= "Informasi untuk {$item['label']} layanan {$service->name} belum tersedia.\n";
@@ -528,7 +581,7 @@ class ChatbotService
 
         // Tampilkan kembali daftar opsi layanan agar visitor mudah memilih
         // langkah berikutnya (mis. lanjut ke formulir / hubungi petugas).
-        $menuDef = $this->serviceMenus[$service->code] ?? null;
+        $menuDef = $this->resolveMenuDef($service);
         $reply .= "\n\n---\n";
         if ($menuDef) {
             $reply .= "Pilih lagi:\n";
@@ -627,7 +680,7 @@ class ChatbotService
             return $this->getMainMenu($session);
         }
 
-        $menuDef = $this->serviceMenus[$service->code] ?? null;
+        $menuDef = $this->resolveMenuDef($service);
 
         $reply = "📋 *{$service->name}*\n\n";
         $reply .= "Pilih informasi yang dibutuhkan:\n\n";
