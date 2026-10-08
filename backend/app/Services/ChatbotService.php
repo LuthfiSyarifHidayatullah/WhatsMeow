@@ -624,9 +624,10 @@ class ChatbotService
     {
         $opds = Opd::where('is_active', true)->orderBy('sort_order')->get();
 
-        $reply = "📋 *SISTEM INFORMASI PELAYANAN*\n";
-        $reply .= "*PEMERINTAH KABUPATEN BENGKAYANG*\n\n";
-        $reply .= "Silakan pilih instansi/perangkat daerah:\n\n";
+        $reply = "🙏 *Selamat datang di Layanan Informasi*\n";
+        $reply .= "*PEMERINTAH KABUPATEN BENGKAYANG* 🏛️\n\n";
+        $reply .= "Senang bisa membantu Anda hari ini. Kami siap melayani kebutuhan informasi dan layanan Anda. 😊\n\n";
+        $reply .= "Silakan pilih instansi/perangkat daerah yang Anda tuju:\n\n";
 
         foreach ($opds as $index => $opd) {
             $reply .= ($index + 1) . ". {$opd->name}\n";
@@ -764,9 +765,9 @@ class ChatbotService
             'escalated_at' => now(),
         ]);
 
-        $reply = "⏳ Mohon maaf, saat ini petugas sedang melayani.\n";
-        $reply .= "Anda berada dalam antrian. Petugas akan segera merespons.\n\n";
-        $reply .= "Sambil menunggu, silakan tuliskan pertanyaan Anda.";
+        $reply = "🙏 Terima kasih sudah menghubungi kami.\n\n";
+        $reply .= "Saat ini seluruh petugas sedang membantu warga lain, jadi mohon menunggu sebentar ya. Permintaan Anda sudah masuk antrian dan petugas akan segera membalas secepatnya. ⏳\n\n";
+        $reply .= "Agar lebih cepat ditangani, silakan tuliskan dulu pertanyaan atau kebutuhan Anda di sini. Pesan Anda pasti kami baca. 😊";
 
         $this->storeMessage($session, 'bot', $reply);
 
@@ -826,9 +827,9 @@ class ChatbotService
             'escalated_at' => now(),
         ]);
 
-        $reply = "⏳ Mohon maaf, saat ini petugas pengaduan sedang tidak tersedia.\n";
-        $reply .= "Pengaduan Anda masuk dalam antrian dan akan segera ditindaklanjuti.\n\n";
-        $reply .= "Silakan tuliskan pengaduan Anda, kami akan meneruskannya ke petugas.";
+        $reply = "🙏 Terima kasih telah menyampaikan pengaduan kepada kami.\n\n";
+        $reply .= "Saat ini petugas pengaduan sedang melayani warga lain, jadi mohon menunggu sebentar ya. Pengaduan Anda sudah masuk antrian dan akan segera kami tindak lanjuti. ⏳\n\n";
+        $reply .= "Silakan tuliskan pengaduan Anda selengkap mungkin di sini. Kami pastikan pesan Anda diteruskan ke petugas. 😊";
 
         $this->storeMessage($session, 'bot', $reply);
 
