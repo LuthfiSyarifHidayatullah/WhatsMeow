@@ -84,9 +84,12 @@
           <h3 class="text-lg font-semibold">Kelola Menu Layanan</h3>
           <button @click="closeMenuManager" class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
         </div>
-        <p class="text-sm text-gray-500 mb-4">
+        <p class="text-sm text-gray-500 mb-1">
           Pilihan yang muncul di WhatsApp setelah warga memilih
           <span class="font-medium text-gray-700">{{ menuService?.name }}</span>.
+        </p>
+        <p class="text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded px-2 py-1.5 mb-4">
+          💡 Teks informasi &amp; formulir diubah di sini (lewat tombol <b>Edit</b> pada tiap pilihan). Perubahan langsung dipakai bot pada chat berikutnya.
         </p>
 
         <!-- Existing items -->

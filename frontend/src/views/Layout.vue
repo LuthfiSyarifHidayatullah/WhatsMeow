@@ -89,7 +89,10 @@ const menuItems = computed(() => {
       { path: '/opds', label: 'Instansi (OPD)', icon: 'OpdIcon' },
       { path: '/services', label: 'Layanan', icon: 'ServiceIcon' },
       { path: '/officers', label: 'Petugas', icon: 'UserIcon' },
-      { path: '/bot-responses', label: 'Respons Bot', icon: 'BotIcon' },
+      // Teks respons bot kini dikelola per-layanan lewat "Kelola Menu" pada
+      // halaman Layanan, jadi link "Respons Bot" lama disembunyikan agar tidak
+      // membingungkan. (Rute /bot-responses masih ada bila sewaktu-waktu
+      // dibutuhkan.)
       { path: '/export', label: 'Export Laporan', icon: 'ExportIcon' },
       { path: '/activity-logs', label: 'Log Aktivitas', icon: 'LogIcon' },
     )
