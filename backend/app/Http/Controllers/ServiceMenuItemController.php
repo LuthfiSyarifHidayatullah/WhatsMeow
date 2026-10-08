@@ -71,12 +71,13 @@ class ServiceMenuItemController extends Controller
      */
     private function validateData(Request $request, ?ServiceMenuItem $existing = null): array
     {
-        $required = $existing ? 'sometimes|required' : 'required';
+        // Pada update, field opsional (sometimes); pada create, label wajib.
+        $labelRules = $existing ? ['sometimes', 'required'] : ['required'];
 
         return $request->validate([
             'service_id' => [$existing ? 'sometimes' : 'required', 'exists:services,id'],
             'position' => ['nullable', 'integer', 'min:1'],
-            'label' => [$required, 'string', 'max:255'],
+            'label' => [...$labelRules, 'string', 'max:255'],
             'action' => [$existing ? 'sometimes' : 'required', Rule::in(ServiceMenuItem::ACTIONS)],
             'response_text' => ['nullable', 'string'],
             'is_active' => ['boolean'],
