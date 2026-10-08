@@ -766,7 +766,7 @@ class ChatbotService
         ]);
 
         $reply = "🙏 Terima kasih sudah menghubungi kami.\n\n";
-        $reply .= "Saat ini seluruh petugas sedang membantu warga lain, jadi mohon menunggu sebentar ya. Permintaan Anda sudah masuk antrian dan petugas akan segera membalas secepatnya. ⏳\n\n";
+        $reply .= "Saat ini seluruh petugas sedang melayani, jadi mohon menunggu sebentar ya. Permintaan Anda sudah masuk antrian dan petugas akan segera membalas secepatnya. ⏳\n\n";
         $reply .= "Agar lebih cepat ditangani, silakan tuliskan dulu pertanyaan atau kebutuhan Anda di sini. Pesan Anda pasti kami baca. 😊";
 
         $this->storeMessage($session, 'bot', $reply);
@@ -828,8 +828,8 @@ class ChatbotService
         ]);
 
         $reply = "🙏 Terima kasih telah menyampaikan pengaduan kepada kami.\n\n";
-        $reply .= "Saat ini petugas pengaduan sedang melayani warga lain, jadi mohon menunggu sebentar ya. Pengaduan Anda sudah masuk antrian dan akan segera kami tindak lanjuti. ⏳\n\n";
-        $reply .= "Silakan tuliskan pengaduan Anda selengkap mungkin di sini. Kami pastikan pesan Anda diteruskan ke petugas. 😊";
+        $reply .= "Pengaduan Anda sudah kami terima dan akan segera diproses. ✅\n\n";
+        $reply .= "Silakan tuliskan pengaduan Anda selengkap mungkin di sini agar lebih mudah kami tindak lanjuti. 😊";
 
         $this->storeMessage($session, 'bot', $reply);
 
