@@ -828,8 +828,7 @@ class ChatbotService
         ]);
 
         $reply = "🙏 Terima kasih telah menyampaikan pengaduan kepada kami.\n\n";
-        $reply .= "Pengaduan Anda sudah kami terima dan akan segera diproses. ✅\n\n";
-        $reply .= "Silakan tuliskan pengaduan Anda selengkap mungkin di sini agar lebih mudah kami tindak lanjuti. 😊";
+        $reply .= "Pengaduan Anda sudah kami terima dan akan segera diproses. ✅";
 
         $this->storeMessage($session, 'bot', $reply);
 
