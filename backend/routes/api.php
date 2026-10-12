@@ -35,6 +35,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Auth
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+    Route::post('/heartbeat', [AuthController::class, 'heartbeat']);
 
     // Monitoring Dashboard
     Route::prefix('monitoring')->group(function () {

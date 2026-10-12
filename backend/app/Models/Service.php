@@ -52,7 +52,7 @@ class Service extends Model
     public function availableOfficers()
     {
         return $this->officers()
-            ->where('is_online', true)
+            ->present()
             ->where('is_available', true)
             ->whereColumn('current_chat_count', '<', 'max_concurrent_chats');
     }

@@ -27,8 +27,8 @@ class AuthController extends Controller
             ]);
         }
 
-        // Set user online
-        $user->update(['is_online' => true]);
+        // Set user online + catat kehadiran
+        $user->update(['is_online' => true, 'last_seen_at' => now()]);
 
         // Log activity
         ActivityLog::create([
@@ -67,6 +67,26 @@ class AuthController extends Controller
     {
         return response()->json([
             'user' => $request->user()->load('service'),
+        ]);
+    }
+
+    /**
+     * Heartbeat kehadiran: dipanggil berkala oleh dashboard selama petugas
+     * membuka aplikasi. Memastikan is_online = true dan memperbarui
+     * last_seen_at. Jika petugas menutup browser, heartbeat berhenti dan
+     * scheduler (users:mark-stale-offline) akan menandainya offline.
+     */
+    public function heartbeat(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $user->update([
+            'is_online' => true,
+            'last_seen_at' => now(),
+        ]);
+
+        return response()->json([
+            'ok' => true,
+            'last_seen_at' => $user->last_seen_at,
         ]);
     }
 }

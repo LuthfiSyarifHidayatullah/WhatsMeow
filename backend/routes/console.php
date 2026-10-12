@@ -14,3 +14,7 @@ use Illuminate\Support\Facades\Schedule;
 */
 
 Schedule::command('chat:check-timeout')->everyMinute();
+
+// Tandai petugas/admin yang berhenti mengirim heartbeat (tutup browser tanpa
+// logout) menjadi offline, agar tidak salah dianggap tersedia.
+Schedule::command('users:mark-stale-offline')->everyMinute();

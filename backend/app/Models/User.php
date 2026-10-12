@@ -20,10 +20,19 @@ class User extends Authenticatable
         'service_id',
         'is_online',
         'is_available',
+        'last_seen_at',
         'max_concurrent_chats',
         'current_chat_count',
         'avatar',
     ];
+
+    /**
+     * Ambang (menit) sejak last_seen_at agar petugas dianggap benar-benar
+     * hadir. Heartbeat dashboard berjalan tiap ~30 detik, jadi 3 menit memberi
+     * toleransi untuk jeda jaringan tanpa membuat petugas aktif salah dianggap
+     * offline.
+     */
+    public const PRESENCE_FRESHNESS_MINUTES = 3;
 
     protected $hidden = [
         'password',
@@ -35,6 +44,7 @@ class User extends Authenticatable
         'password' => 'hashed',
         'is_online' => 'boolean',
         'is_available' => 'boolean',
+        'last_seen_at' => 'datetime',
     ];
 
     public function service(): BelongsTo
@@ -81,7 +91,27 @@ class User extends Authenticatable
     public function canAcceptChat(): bool
     {
         return $this->is_online
+            && $this->isPresent()
             && $this->is_available
             && $this->current_chat_count < $this->max_concurrent_chats;
+    }
+
+    /**
+     * Apakah kehadiran terakhir masih segar (dalam ambang PRESENCE_FRESHNESS).
+     */
+    public function isPresent(): bool
+    {
+        return $this->last_seen_at !== null
+            && $this->last_seen_at->gte(now()->subMinutes(self::PRESENCE_FRESHNESS_MINUTES));
+    }
+
+    /**
+     * Scope: hanya pengguna yang benar-benar hadir (is_online = true DAN
+     * last_seen_at masih dalam ambang kesegaran).
+     */
+    public function scopePresent($query)
+    {
+        return $query->where('is_online', true)
+            ->where('last_seen_at', '>=', now()->subMinutes(self::PRESENCE_FRESHNESS_MINUTES));
     }
 }

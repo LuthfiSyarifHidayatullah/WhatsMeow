@@ -45,6 +45,18 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // Heartbeat kehadiran: menjaga is_online + last_seen_at tetap segar selama
+  // dashboard terbuka. Dipanggil berkala dari Layout.vue.
+  async function heartbeat() {
+    if (!token.value) return
+    try {
+      await api.post('/heartbeat')
+    } catch (e) {
+      // Diamkan: interceptor useApi menangani 401; kegagalan sesaat (jaringan)
+      // akan dipulihkan pada heartbeat berikutnya.
+    }
+  }
+
   return {
     user,
     token,
@@ -55,5 +67,6 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     logout,
     checkAuth,
+    heartbeat,
   }
 })
