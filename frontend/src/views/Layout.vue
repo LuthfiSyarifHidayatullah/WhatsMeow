@@ -57,12 +57,27 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
 const router = useRouter()
 const authStore = useAuthStore()
+
+// Heartbeat kehadiran: selama shell dashboard ini ter-mount (pengguna login),
+// kirim sinyal tiap 30 detik agar is_online + last_seen_at tetap segar. Saat
+// pengguna menutup tab, interval berhenti dan scheduler menandainya offline.
+const HEARTBEAT_INTERVAL_MS = 30000
+let heartbeatTimer = null
+
+onMounted(() => {
+  authStore.heartbeat()
+  heartbeatTimer = setInterval(() => authStore.heartbeat(), HEARTBEAT_INTERVAL_MS)
+})
+
+onUnmounted(() => {
+  if (heartbeatTimer) clearInterval(heartbeatTimer)
+})
 
 const userInitials = computed(() => {
   const name = authStore.user?.name || ''

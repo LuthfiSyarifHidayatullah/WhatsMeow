@@ -38,7 +38,7 @@ class MonitoringController extends Controller
             'avg_satisfaction' => (clone $sessionQuery)->whereNotNull('satisfaction_rating')
                 ->where('resolved_at', '>=', $today)
                 ->avg('satisfaction_rating'),
-            'online_officers' => User::where('is_online', true)
+            'online_officers' => User::present()
                 ->where('role', 'officer')
                 ->when($serviceId, fn($q) => $q->where('service_id', $serviceId))
                 ->count(),

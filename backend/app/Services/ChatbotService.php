@@ -1155,7 +1155,7 @@ class ChatbotService
 
     private function findAvailableOfficer(?int $serviceId): ?User
     {
-        $query = User::where('role', 'officer')->where('is_online', true)
+        $query = User::where('role', 'officer')->present()
             ->where('is_available', true)->whereColumn('current_chat_count', '<', 'max_concurrent_chats');
 
         if ($serviceId) {
@@ -1171,7 +1171,7 @@ class ChatbotService
     private function findAvailableAdmin(): ?User
     {
         return User::whereIn('role', ['admin', 'supervisor'])
-            ->where('is_online', true)
+            ->present()
             ->where('is_available', true)
             ->whereColumn('current_chat_count', '<', 'max_concurrent_chats')
             ->orderBy('current_chat_count')
@@ -1186,7 +1186,7 @@ class ChatbotService
     private function findOnlineOfficerForService(int $serviceId): ?User
     {
         return User::where('role', 'officer')
-            ->where('is_online', true)
+            ->present()
             ->where('service_id', $serviceId)
             ->orderBy('current_chat_count')
             ->first();
@@ -1199,7 +1199,7 @@ class ChatbotService
     private function findOnlineAdmin(): ?User
     {
         return User::whereIn('role', ['admin', 'supervisor'])
-            ->where('is_online', true)
+            ->present()
             ->orderBy('current_chat_count')
             ->first();
     }
