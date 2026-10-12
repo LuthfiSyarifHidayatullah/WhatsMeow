@@ -81,6 +81,30 @@
       </div>
     </div>
 
+    <!-- Priority Alert (kasus prioritas / perempuan & anak) -->
+    <div v-if="priorityChats.length > 0" class="card mb-6 border-red-300 bg-red-50 ring-1 ring-red-200">
+      <div class="flex items-center mb-3">
+        <span class="text-xl mr-2">🚨</span>
+        <h3 class="font-semibold text-red-800">Chat Prioritas — Perlu Perhatian ({{ priorityChats.length }})</h3>
+      </div>
+      <div class="space-y-2">
+        <div v-for="chat in priorityChats" :key="chat.session_id" class="flex items-center justify-between bg-white p-3 rounded-lg border border-red-100">
+          <div>
+            <p class="text-sm font-medium">{{ chat.visitor_name || chat.visitor_phone }}</p>
+            <p class="text-xs text-gray-500">{{ chat.service?.name || 'Umum' }}</p>
+          </div>
+          <div class="flex items-center space-x-2">
+            <span class="badge text-xs" :class="chat.status === 'active' ? 'badge-active' : 'badge-waiting'">
+              {{ chat.status === 'active' ? 'Terhubung' : 'Menunggu' }}
+            </span>
+            <router-link :to="`/live-chat/${chat.session_id}`" class="btn-primary text-xs py-1 px-3">
+              Buka Chat
+            </router-link>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Queue Alert -->
     <div v-if="queue.length > 0" class="card mb-6 border-yellow-200 bg-yellow-50">
       <div class="flex items-center mb-3">
@@ -114,7 +138,8 @@
         <div
           v-for="chat in recentChats"
           :key="chat.session_id"
-          class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 cursor-pointer border border-gray-100"
+          class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 cursor-pointer border"
+          :class="isPriority(chat) ? 'border-red-300 bg-red-50' : 'border-gray-100'"
           @click="$router.push(`/live-chat/${chat.session_id}`)"
         >
           <div class="flex items-center space-x-3">
@@ -142,6 +167,7 @@
             </div>
           </div>
           <div class="flex flex-col items-end space-y-1">
+            <span v-if="isPriority(chat)" class="badge text-xs bg-red-100 text-red-700">🚨 Prioritas</span>
             <span class="badge text-xs"
               :class="{
                 'badge-active': chat.status === 'active',
@@ -214,6 +240,12 @@ const stats = ref({
 const serviceStats = ref([])
 const queue = ref([])
 const recentChats = ref([])
+const priorityChats = ref([])
+
+// Sesi dianggap prioritas bila kolom priority = 'urgent'.
+function isPriority(chat) {
+  return chat?.priority === 'urgent'
+}
 let refreshInterval = null
 
 async function fetchDashboard() {
@@ -236,9 +268,12 @@ async function fetchDashboard() {
 
     // Show recent chats (active + waiting, max 5)
     const allChats = chatsRes.data.data || chatsRes.data
-    recentChats.value = allChats
-      .filter(c => c.status === 'active' || c.status === 'waiting')
-      .slice(0, 5)
+    const openChats = allChats.filter(c => c.status === 'active' || c.status === 'waiting')
+    recentChats.value = openChats.slice(0, 5)
+
+    // Daftar chat prioritas (urgent) yang masih aktif/menunggu, untuk panel
+    // "Perlu Perhatian".
+    priorityChats.value = openChats.filter(isPriority)
   } catch (e) {
     console.error('Failed to fetch dashboard:', e)
   }

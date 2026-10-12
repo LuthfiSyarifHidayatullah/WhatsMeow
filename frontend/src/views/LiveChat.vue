@@ -23,6 +23,7 @@
         v-for="session in sessions"
         :key="session.session_id"
         class="card cursor-pointer hover:shadow-md transition-shadow"
+        :class="{ 'border-l-4 border-red-400 bg-red-50': session.priority === 'urgent' }"
         @click="openChat(session)"
       >
         <div class="flex items-center justify-between">
@@ -41,6 +42,11 @@
           </div>
 
           <div class="flex items-center space-x-3">
+            <!-- Priority Badge -->
+            <span v-if="session.priority === 'urgent'" class="badge bg-red-100 text-red-700">
+              🚨 Prioritas
+            </span>
+
             <!-- Status Badge -->
             <span :class="statusBadgeClass(session.status)" class="badge">
               {{ statusLabel(session.status) }}

@@ -34,7 +34,10 @@ class ChatSessionController extends Controller
             $query->where('officer_id', $request->officer_id);
         }
 
-        // For officers, only show their assigned or service sessions
+        // For officers, only show their assigned or service sessions.
+        // Pengecualian: sesi PRIORITAS (urgent) di layanan petugas tersebut
+        // selalu terlihat oleh semua petugas layanan itu (meski ditugaskan ke
+        // rekan), agar kasus mendesak tidak terlewat / ada backup.
         $user = $request->user();
         if ($user->isOfficer()) {
             $query->where(function ($q) use ($user) {
@@ -42,6 +45,11 @@ class ChatSessionController extends Controller
                     ->orWhere(function ($q2) use ($user) {
                         $q2->where('service_id', $user->service_id)
                             ->where('status', 'waiting');
+                    })
+                    ->orWhere(function ($q3) use ($user) {
+                        $q3->where('service_id', $user->service_id)
+                            ->where('priority', 'urgent')
+                            ->whereIn('status', ['active', 'waiting']);
                     });
             });
         }

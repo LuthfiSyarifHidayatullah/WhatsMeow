@@ -31,6 +31,8 @@ class MonitoringController extends Controller
             'total_sessions_today' => (clone $sessionQuery)->where('created_at', '>=', $today)->count(),
             'active_sessions' => (clone $sessionQuery)->where('status', 'active')->count(),
             'waiting_sessions' => (clone $sessionQuery)->where('status', 'waiting')->count(),
+            'priority_sessions' => (clone $sessionQuery)->where('priority', 'urgent')
+                ->whereIn('status', ['active', 'waiting'])->count(),
             'bot_sessions' => (clone $sessionQuery)->where('status', 'bot')->count(),
             'resolved_today' => (clone $sessionQuery)->where('status', 'resolved')
                 ->where('resolved_at', '>=', $today)->count(),

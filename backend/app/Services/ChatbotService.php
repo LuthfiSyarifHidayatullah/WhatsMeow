@@ -760,6 +760,7 @@ class ChatbotService
         if ($handler) {
             $session->update([
                 'status' => 'active',
+                'priority' => 'urgent',
                 'officer_id' => $handler->id,
                 'escalated_at' => now(),
                 'assigned_at' => now(),
@@ -788,6 +789,7 @@ class ChatbotService
         // Tidak ada petugas/admin online → antrian + nomor darurat.
         $session->update([
             'status' => 'waiting',
+            'priority' => 'urgent',
             'escalated_at' => now(),
         ]);
 
