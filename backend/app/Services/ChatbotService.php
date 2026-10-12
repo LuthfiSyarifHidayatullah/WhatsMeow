@@ -17,6 +17,20 @@ use Illuminate\Support\Str;
 class ChatbotService
 {
     /**
+     * Kode layanan prioritas tinggi (kasus perempuan & anak). Saat dipilih,
+     * warga LANGSUNG disambungkan ke petugas online tanpa melalui sub-menu
+     * dan tanpa menunggu konfirmasi; ketersediaan/kuota diabaikan karena
+     * sifatnya mendesak. Lihat getServiceSubMenu() & escalatePriority().
+     */
+    private const PRIORITY_SERVICE_CODE = 'sosial_perempuan_anak';
+
+    /** Nomor darurat yang ditampilkan bila tak ada petugas/admin online. */
+    private const EMERGENCY_CONTACTS = [
+        '129 — SAPA 129 (Layanan Perlindungan Perempuan & Anak, Kemen-PPPA)',
+        '110 — Kepolisian',
+    ];
+
+    /**
      * Sub-menu definitions per service code.
      *
      * Cakupan se-kabupaten: layanan dikelompokkan per OPD. Setiap layanan
@@ -423,6 +437,8 @@ class ChatbotService
         if ($number > 0 && $number <= $services->count()) {
             $service = $services[$number - 1];
             $session->update(['service_id' => $service->id, 'topic' => $service->name]);
+            // getServiceSubMenu() menangani kasus layanan prioritas (langsung
+            // eskalasi) maupun layanan biasa (tampilkan sub-menu).
             return $this->getServiceSubMenu($session);
         }
 
@@ -696,6 +712,13 @@ class ChatbotService
             return $this->getMainMenu($session);
         }
 
+        // Layanan prioritas (kasus perempuan & anak): jangan tampilkan sub-menu,
+        // langsung sambungkan ke petugas. Berlaku untuk SEMUA jalur masuk
+        // (pilih dari menu OPD maupun pencocokan kata kunci).
+        if ($service->code === self::PRIORITY_SERVICE_CODE) {
+            return $this->escalatePriority($session, $service);
+        }
+
         $menuDef = $this->resolveMenuDef($service);
 
         $reply = "📋 *{$service->name}*\n\n";
@@ -716,6 +739,70 @@ class ChatbotService
         return [
             'reply' => $reply,
             'action' => 'bot_reply',
+            'session_id' => $session->session_id,
+            'service_id' => $service->id,
+        ];
+    }
+
+    /**
+     * Eskalasi PRIORITAS untuk layanan kasus perempuan & anak.
+     *
+     * Urutan penyambungan (mengabaikan kuota & is_available karena mendesak):
+     *   1. Petugas layanan ini yang sedang online.
+     *   2. Admin/supervisor yang sedang online.
+     *   3. Tidak ada keduanya → masuk antrian + tampilkan nomor darurat.
+     */
+    private function escalatePriority(ChatSession $session, Service $service): array
+    {
+        $handler = $this->findOnlineOfficerForService($service->id)
+            ?? $this->findOnlineAdmin();
+
+        if ($handler) {
+            $session->update([
+                'status' => 'active',
+                'officer_id' => $handler->id,
+                'escalated_at' => now(),
+                'assigned_at' => now(),
+            ]);
+            $handler->increment('current_chat_count');
+
+            $reply = "🚨 *Prioritas* — Anda langsung kami hubungkan dengan petugas.\n\n";
+            $reply .= "✅ Terhubung dengan:\n";
+            $reply .= "👤 *{$handler->name}*\n";
+            $reply .= "📌 {$service->name}\n\n";
+            $reply .= "Kerahasiaan Anda kami jaga. Silakan sampaikan kejadian/kebutuhan Anda sekarang. 🤝\n";
+            $reply .= "Ketik *selesai* jika sudah selesai.";
+
+            $this->storeMessage($session, 'bot', $reply);
+            event(new ChatEscalatedEvent($session));
+
+            return [
+                'reply' => $reply,
+                'action' => 'escalate',
+                'session_id' => $session->session_id,
+                'service_id' => $service->id,
+                'officer_id' => $handler->id,
+            ];
+        }
+
+        // Tidak ada petugas/admin online → antrian + nomor darurat.
+        $session->update([
+            'status' => 'waiting',
+            'escalated_at' => now(),
+        ]);
+
+        $reply = "🚨 Pengaduan Anda kami terima sebagai *prioritas* dan akan segera ditindaklanjuti.\n\n";
+        $reply .= "Saat ini petugas belum dapat terhubung langsung. Mohon tuliskan kejadian/kebutuhan Anda di sini — pesan Anda pasti kami baca dan tindak lanjuti.\n\n";
+        $reply .= "☎️ *Jika kondisi darurat atau mengancam keselamatan, segera hubungi:*\n";
+        foreach (self::EMERGENCY_CONTACTS as $contact) {
+            $reply .= "• {$contact}\n";
+        }
+
+        $this->storeMessage($session, 'bot', $reply);
+
+        return [
+            'reply' => $reply,
+            'action' => 'waiting',
             'session_id' => $session->session_id,
             'service_id' => $service->id,
         ];
@@ -1087,6 +1174,32 @@ class ChatbotService
             ->where('is_online', true)
             ->where('is_available', true)
             ->whereColumn('current_chat_count', '<', 'max_concurrent_chats')
+            ->orderBy('current_chat_count')
+            ->first();
+    }
+
+    /**
+     * Cari petugas layanan tertentu yang sedang ONLINE, MENGABAIKAN kuota &
+     * is_available. Khusus eskalasi prioritas (mendesak) agar tidak terhambat
+     * status/kuota. Tetap memilih yang beban chat-nya paling ringan.
+     */
+    private function findOnlineOfficerForService(int $serviceId): ?User
+    {
+        return User::where('role', 'officer')
+            ->where('is_online', true)
+            ->where('service_id', $serviceId)
+            ->orderBy('current_chat_count')
+            ->first();
+    }
+
+    /**
+     * Cari admin/supervisor yang sedang ONLINE, mengabaikan kuota &
+     * is_available. Dipakai sebagai cadangan untuk eskalasi prioritas.
+     */
+    private function findOnlineAdmin(): ?User
+    {
+        return User::whereIn('role', ['admin', 'supervisor'])
+            ->where('is_online', true)
             ->orderBy('current_chat_count')
             ->first();
     }
