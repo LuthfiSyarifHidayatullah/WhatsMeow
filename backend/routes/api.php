@@ -7,6 +7,7 @@ use App\Http\Controllers\BotResponseController;
 use App\Http\Controllers\ChatSessionController;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\InfoFeedbackController;
 use App\Http\Controllers\OpdController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\ServiceMenuItemController;
@@ -36,6 +37,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/heartbeat', [AuthController::class, 'heartbeat']);
+
+    // Feedback kebermanfaatan info (Ya/Tidak dari pengunjung)
+    Route::get('/info-feedback', [InfoFeedbackController::class, 'index']);
 
     // Monitoring Dashboard
     Route::prefix('monitoring')->group(function () {

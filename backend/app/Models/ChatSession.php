@@ -19,6 +19,7 @@ class ChatSession extends Model
         'status',
         'priority',
         'topic',
+        'pending_info_label',
         'satisfaction_rating',
         'satisfaction_feedback',
         'escalated_at',
