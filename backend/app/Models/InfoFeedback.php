@@ -7,6 +7,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class InfoFeedback extends Model
 {
+    // Laravel memperlakukan "feedback" sebagai kata tak terhitung sehingga
+    // menebak tabel 'info_feedback' (tanpa s). Tabel sebenarnya 'info_feedbacks'.
+    protected $table = 'info_feedbacks';
+
     protected $fillable = [
         'service_id',
         'chat_session_id',
