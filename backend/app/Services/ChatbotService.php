@@ -663,7 +663,29 @@ class ChatbotService
         $isNotHelpful = in_array($lowerText, ['tidak', 't', 'tdk', 'ngga', 'nggak', 'engga', 'enggak', 'tidak membantu'], true);
 
         if (!$isHelpful && !$isNotHelpful) {
-            return null; // bukan jawaban Ya/Tidak → biarkan diproses sebagai input lain
+            // Navigasi (8/9/0) tetap boleh dipakai sebagai jalan keluar →
+            // biarkan diproses handler biasa.
+            if (in_array($lowerText, ['8', '9', '0', 'menu', 'petugas'], true)) {
+                return null;
+            }
+
+            // Selain itu (mis. angka menu "2") → jangan diartikan sebagai menu.
+            // Ingatkan pengunjung untuk menjawab Ya/Tidak dulu agar tidak
+            // tersesat (mis. tidak sengaja masuk antrian).
+            $reply = "Mohon jawab dengan *Ya* atau *Tidak* untuk menilai informasi tadi.\n\n";
+            $reply .= "---\n";
+            $reply .= "Atau ketik angka:\n";
+            $reply .= "8. Hubungi Petugas\n";
+            $reply .= "9. Kembali (pilih layanan lain)\n";
+            $reply .= "0. Menu Utama";
+
+            $this->storeMessage($session, 'bot', $reply);
+            return [
+                'reply' => $reply,
+                'action' => 'bot_reply',
+                'session_id' => $session->session_id,
+                'service_id' => $session->service_id,
+            ];
         }
 
         $label = $session->pending_info_label;
