@@ -988,8 +988,8 @@ class ChatbotService
             'escalated_at' => now(),
         ]);
 
-        $reply = "🙏 Terima kasih telah menyampaikan pengaduan kepada kami.\n\n";
-        $reply .= "Pengaduan Anda sudah kami terima dan akan segera diproses. ✅";
+        $reply = "🙏 Terima kasih telah menyampaikan pengaduan kepada kami.\n";
+        $reply .= "Mohon menunggu beberapa saat untuk terhubung dengan petugas kami.";
 
         $this->storeMessage($session, 'bot', $reply);
 
