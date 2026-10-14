@@ -366,7 +366,7 @@ class ChatbotService
         }
 
         // Direct escalation (hanya jika layanan sudah dipilih, agar petugas tepat)
-        if (in_array($lowerText, ['petugas', 'operator', 'live chat', 'konfirmasi'])) {
+        if (in_array($lowerText, ['petugas', 'operator', 'live chat'])) {
             if ($session->service_id) {
                 return $this->escalateToOfficer($session, $session->service_id);
             }
@@ -499,7 +499,7 @@ class ChatbotService
             return $this->escalateToOfficer($session, $session->service_id);
         }
 
-        // Show formulir link then escalate to officer
+        // Tampilkan formulir, lalu tanyakan kebermanfaatan (Ya/Tidak).
         if ($item['action'] === 'formulir_then_escalate') {
             return $this->showFormulirThenEscalate($session, $service, $item);
         }
@@ -535,7 +535,35 @@ class ChatbotService
     }
 
     /**
-     * Show formulir link, then wait for visitor to confirm before escalating
+     * Akhiri sebuah tampilan informasi (info/jadwal/formulir) dengan pertanyaan
+     * kebermanfaatan "Ya/Tidak" SAJA — tanpa navigasi 8/9/0. Navigasi baru
+     * ditampilkan setelah pengunjung menjawab (lihat handleInfoFeedbackIfApplicable).
+     *
+     * $contentReply : isi informasi yang sudah dirangkai pemanggil.
+     * $infoLabel    : label info untuk dicatat ke feedback & dipetakan jawaban.
+     */
+    private function askInfoFeedback(ChatSession $session, Service $service, string $contentReply, string $infoLabel): array
+    {
+        $reply = $contentReply;
+        $reply .= "\n\n---\n";
+        $reply .= "Apakah informasi ini membantu? Balas *Ya* atau *Tidak*.";
+
+        // Ingat info terakhir yang ditampilkan agar jawaban Ya/Tidak berikutnya
+        // dapat dipetakan ke item yang benar.
+        $session->update(['pending_info_label' => $infoLabel]);
+
+        $this->storeMessage($session, 'bot', $reply);
+        return [
+            'reply' => $reply,
+            'action' => 'bot_reply',
+            'session_id' => $session->session_id,
+            'service_id' => $service->id,
+        ];
+    }
+
+    /**
+     * Tampilkan link/teks formulir, lalu tanyakan kebermanfaatan (Ya/Tidak).
+     * (Mekanisme "ketik konfirmasi" dihapus; untuk ke petugas pakai navigasi 8.)
      */
     private function showFormulirThenEscalate(ChatSession $session, Service $service, array $item): array
     {
@@ -549,17 +577,7 @@ class ChatbotService
             $reply .= "Silakan hubungi petugas untuk informasi lebih lanjut.";
         }
 
-        $reply .= "\n\n---\n";
-        $reply .= "Konfirmasi ke petugas bersifat *opsional*. Jika setelah mengisi formulir Anda ingin terhubung dengan petugas, ketik *konfirmasi*.";
-        $reply .= $this->navFooter();
-
-        $this->storeMessage($session, 'bot', $reply);
-        return [
-            'reply' => $reply,
-            'action' => 'bot_reply',
-            'session_id' => $session->session_id,
-            'service_id' => $service->id,
-        ];
+        return $this->askInfoFeedback($session, $service, $reply, $item['label']);
     }
 
     /**
@@ -608,15 +626,8 @@ class ChatbotService
             }
         }
 
-        $reply .= $this->navFooter();
-
-        $this->storeMessage($session, 'bot', $reply);
-        return [
-            'reply' => $reply,
-            'action' => 'bot_reply',
-            'session_id' => $session->session_id,
-            'service_id' => $service->id,
-        ];
+        // Jadwal juga dianggap "informasi" → tanyakan kebermanfaatan (Ya/Tidak).
+        return $this->askInfoFeedback($session, $service, $reply, "Jadwal {$service->name}");
     }
 
     /**
@@ -634,24 +645,7 @@ class ChatbotService
             $reply .= "Silakan hubungi petugas untuk informasi lebih lanjut.";
         }
 
-        // Pertanyaan kebermanfaatan info (dijawab Ya/Tidak, opsional).
-        $reply .= "\n\n---\n";
-        $reply .= "Apakah informasi ini membantu? Balas *Ya* atau *Tidak*.";
-
-        // Navigasi standar (8/9/0) tetap tersedia bila ingin langsung lanjut.
-        $reply .= $this->navFooter();
-
-        // Ingat info terakhir yang ditampilkan agar jawaban Ya/Tidak berikutnya
-        // dapat dipetakan ke item yang benar.
-        $session->update(['pending_info_label' => $item['label']]);
-
-        $this->storeMessage($session, 'bot', $reply);
-        return [
-            'reply' => $reply,
-            'action' => 'bot_reply',
-            'session_id' => $session->session_id,
-            'service_id' => $service->id,
-        ];
+        return $this->askInfoFeedback($session, $service, $reply, $item['label']);
     }
 
     /**
@@ -692,17 +686,14 @@ class ChatbotService
         $session->update(['pending_info_label' => null]);
 
         if ($isHelpful) {
-            $reply = "Terima kasih atas tanggapan Anda! Senang bisa membantu. 🙏\n\n";
-            $reply .= "---\n";
-            $reply .= "9. Kembali (pilih layanan lain)\n";
-            $reply .= "0. Menu Utama";
+            // Jawaban Ya → terima kasih, lalu baru tampilkan navigasi 8/9/0.
+            $reply = "Terima kasih atas tanggapan Anda! Senang bisa membantu. 🙏";
+            $reply .= $this->navFooter();
         } else {
+            // Jawaban Tidak → empati + arahkan ke petugas, lalu navigasi 8/9/0.
             $reply = "Mohon maaf jika informasi tersebut belum menjawab kebutuhan Anda. 🙏\n";
-            $reply .= "Anda dapat terhubung dengan petugas untuk penjelasan lebih lanjut.\n\n";
-            $reply .= "---\n";
-            $reply .= "8. Hubungi Petugas\n";
-            $reply .= "9. Kembali (pilih layanan lain)\n";
-            $reply .= "0. Menu Utama";
+            $reply .= "Anda dapat terhubung dengan petugas untuk penjelasan lebih lanjut.";
+            $reply .= $this->navFooter();
         }
 
         $this->storeMessage($session, 'bot', $reply);
@@ -1016,6 +1007,21 @@ class ChatbotService
 
     private function handleWaitingMode(ChatSession $session, string $text): array
     {
+        $lowerText = strtolower(trim($text));
+
+        // Jalan keluar dari antrian: pengunjung dapat membatalkan dan kembali
+        // ke menu utama kapan saja (A1). Sesi dikembalikan ke mode bot.
+        if (in_array($lowerText, ['menu', '0', 'batal', 'keluar', 'exit', 'selesai'])) {
+            $session->update([
+                'status' => 'bot',
+                'service_id' => null,
+                'current_opd_id' => null,
+                'topic' => null,
+                'pending_info_label' => null,
+            ]);
+            return $this->getMainMenu($session);
+        }
+
         if (empty($session->topic)) {
             $session->update(['topic' => mb_substr($text, 0, 255)]);
         }
