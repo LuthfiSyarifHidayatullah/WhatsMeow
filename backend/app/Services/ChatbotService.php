@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Booking;
 use App\Models\BotResponse;
 use App\Models\ChatSession;
+use App\Models\InfoFeedback;
 use App\Models\Message;
 use App\Models\Opd;
 use App\Models\Service;
@@ -326,6 +327,18 @@ class ChatbotService
             return $this->getMainMenu($session);
         }
 
+        // Jawaban kebermanfaatan info (Ya/Tidak) bila sedang ditanyakan.
+        $infoFeedback = $this->handleInfoFeedbackIfApplicable($session, $lowerText);
+        if ($infoFeedback) {
+            return $infoFeedback;
+        }
+
+        // Input lain selain Ya/Tidak = pengunjung melanjutkan; tidak jadi
+        // menjawab pertanyaan kebermanfaatan. Kosongkan agar tidak menggantung.
+        if (!empty($session->pending_info_label)) {
+            $session->update(['pending_info_label' => null]);
+        }
+
         // Menu utama (reset ke pemilihan OPD)
         if (in_array($lowerText, ['menu', '0', 'halo', 'hai', 'hi', 'hello', 'start'])) {
             $session->update(['service_id' => null, 'current_opd_id' => null, 'topic' => null]);
@@ -621,8 +634,16 @@ class ChatbotService
             $reply .= "Silakan hubungi petugas untuk informasi lebih lanjut.";
         }
 
-        // Setelah informasi, tampilkan navigasi standar (8/9/0).
+        // Pertanyaan kebermanfaatan info (dijawab Ya/Tidak, opsional).
+        $reply .= "\n\n---\n";
+        $reply .= "Apakah informasi ini membantu? Balas *Ya* atau *Tidak*.";
+
+        // Navigasi standar (8/9/0) tetap tersedia bila ingin langsung lanjut.
         $reply .= $this->navFooter();
+
+        // Ingat info terakhir yang ditampilkan agar jawaban Ya/Tidak berikutnya
+        // dapat dipetakan ke item yang benar.
+        $session->update(['pending_info_label' => $item['label']]);
 
         $this->storeMessage($session, 'bot', $reply);
         return [
@@ -630,6 +651,60 @@ class ChatbotService
             'action' => 'bot_reply',
             'session_id' => $session->session_id,
             'service_id' => $service->id,
+        ];
+    }
+
+    /**
+     * Tangani jawaban kebermanfaatan info (Ya/Tidak) jika sedang ditanyakan.
+     * Mengembalikan array balasan bila teks adalah jawaban yang relevan, atau
+     * null bila bukan (agar diproses sebagai input biasa).
+     */
+    private function handleInfoFeedbackIfApplicable(ChatSession $session, string $lowerText): ?array
+    {
+        if (empty($session->pending_info_label)) {
+            return null;
+        }
+
+        $isHelpful = in_array($lowerText, ['ya', 'y', 'iya', 'ya membantu', 'membantu'], true);
+        $isNotHelpful = in_array($lowerText, ['tidak', 't', 'tdk', 'ngga', 'nggak', 'engga', 'enggak', 'tidak membantu'], true);
+
+        if (!$isHelpful && !$isNotHelpful) {
+            return null; // bukan jawaban Ya/Tidak → biarkan diproses sebagai input lain
+        }
+
+        $label = $session->pending_info_label;
+
+        InfoFeedback::create([
+            'service_id' => $session->service_id,
+            'chat_session_id' => $session->id,
+            'info_label' => $label,
+            'is_helpful' => $isHelpful,
+            'visitor_phone' => $session->visitor_phone,
+        ]);
+
+        // Jawaban sudah dicatat → kosongkan agar tidak dicatat ganda.
+        $session->update(['pending_info_label' => null]);
+
+        if ($isHelpful) {
+            $reply = "Terima kasih atas tanggapan Anda! Senang bisa membantu. 🙏\n\n";
+            $reply .= "---\n";
+            $reply .= "9. Kembali (pilih layanan lain)\n";
+            $reply .= "0. Menu Utama";
+        } else {
+            $reply = "Mohon maaf jika informasi tersebut belum menjawab kebutuhan Anda. 🙏\n";
+            $reply .= "Anda dapat terhubung dengan petugas untuk penjelasan lebih lanjut.\n\n";
+            $reply .= "---\n";
+            $reply .= "8. Hubungi Petugas\n";
+            $reply .= "9. Kembali (pilih layanan lain)\n";
+            $reply .= "0. Menu Utama";
+        }
+
+        $this->storeMessage($session, 'bot', $reply);
+        return [
+            'reply' => $reply,
+            'action' => 'bot_reply',
+            'session_id' => $session->session_id,
+            'service_id' => $session->service_id,
         ];
     }
 

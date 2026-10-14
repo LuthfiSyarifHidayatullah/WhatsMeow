@@ -85,6 +85,11 @@ const routes = [
         name: 'Notifications',
         component: () => import('../views/Notifications.vue'),
       },
+      {
+        path: 'info-feedback',
+        name: 'InfoFeedback',
+        component: () => import('../views/InfoFeedback.vue'),
+      },
     ],
   },
 ]

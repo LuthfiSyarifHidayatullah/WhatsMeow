@@ -92,6 +92,7 @@ const menuItems = computed(() => {
     { path: '/bookings', label: 'Jadwal', icon: 'CalendarIcon' },
     { path: '/notifications', label: 'Notifikasi', icon: 'BellIcon' },
     { path: '/history', label: 'Riwayat Sesi', icon: 'HistoryIcon' },
+    { path: '/info-feedback', label: 'Feedback Info', icon: 'FeedbackIcon' },
   ]
 
   // Rating hanya untuk Admin
