@@ -674,13 +674,19 @@ class ChatbotService
 
         $label = $session->pending_info_label;
 
-        InfoFeedback::create([
-            'service_id' => $session->service_id,
-            'chat_session_id' => $session->id,
-            'info_label' => $label,
-            'is_helpful' => $isHelpful,
-            'visitor_phone' => $session->visitor_phone,
-        ]);
+        // Catat feedback. Jangan sampai kegagalan pencatatan membuat seluruh
+        // percakapan error (pengunjung tetap harus menerima balasan).
+        try {
+            InfoFeedback::create([
+                'service_id' => $session->service_id,
+                'chat_session_id' => $session->id,
+                'info_label' => $label,
+                'is_helpful' => $isHelpful,
+                'visitor_phone' => $session->visitor_phone,
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Gagal menyimpan InfoFeedback: ' . $e->getMessage());
+        }
 
         // Jawaban sudah dicatat → kosongkan agar tidak dicatat ganda.
         $session->update(['pending_info_label' => null]);
