@@ -27,9 +27,17 @@ func main() {
 	// Initialize API client
 	apiClient = NewAPIClient(config.APIBaseURL, config.APIToken)
 
-	// Setup WhatsApp store
+	// Setup WhatsApp store.
+	// Path file sesi dapat diatur via STORE_PATH agar bisa diarahkan ke volume
+	// persisten saat di Docker (mis. /app/data/whatsapp.db). Default: whatsapp.db
+	// di direktori kerja (untuk development lokal).
+	storePath := os.Getenv("STORE_PATH")
+	if storePath == "" {
+		storePath = "whatsapp.db"
+	}
 	dbLog := waLog.Stdout("Database", "WARN", true)
-	container, err := sqlstore.New(context.Background(), "sqlite3", "file:whatsapp.db?_journal_mode=WAL&_foreign_keys=on", dbLog)
+	dsn := fmt.Sprintf("file:%s?_journal_mode=WAL&_foreign_keys=on", storePath)
+	container, err := sqlstore.New(context.Background(), "sqlite3", dsn, dbLog)
 	if err != nil {
 		panic(err)
 	}

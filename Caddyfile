@@ -1,0 +1,20 @@
+# Caddy — reverse proxy + HTTPS otomatis (Let's Encrypt).
+# Domain diambil dari variabel APP_DOMAIN (lihat .env).
+# Caddy akan otomatis menerbitkan & memperbarui sertifikat TLS selama
+# domain sudah diarahkan (DNS A record) ke IP server ini.
+
+{$APP_DOMAIN} {
+	encode gzip
+
+	# Teruskan semua permintaan ke container frontend (Nginx).
+	# Frontend menyajikan dashboard (SPA) dan mem-proxy /api ke backend.
+	reverse_proxy frontend:80
+
+	# Header keamanan dasar.
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options SAMEORIGIN
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+}
