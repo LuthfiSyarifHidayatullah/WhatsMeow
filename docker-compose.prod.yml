@@ -1,0 +1,151 @@
+# =====================================================
+# Docker Compose — PRODUKSI (Siap Bengkayang)
+# =====================================================
+# Berbeda dari docker-compose.yml (development):
+#  - Variabel sensitif diambil dari file .env (bukan hardcoded).
+#  - Hanya Caddy yang membuka port ke publik (80/443). Service lain internal.
+#  - Ada service "scheduler" (wajib untuk timeout & deteksi kehadiran).
+#  - Sesi WhatsApp bot disimpan di volume persisten (/app/data).
+#  - Tidak ada mount kode mentah & tidak ada service websockets.
+#
+# Jalankan:  docker compose -f docker-compose.prod.yml up -d --build
+# =====================================================
+
+services:
+  # ---------- Database ----------
+  mysql:
+    image: mysql:8.0
+    container_name: siap-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - siap-network
+    # Tidak ada 'ports:' → MySQL hanya dapat diakses antar-container (aman).
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${DB_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ---------- Backend (Laravel API) ----------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: siap-backend
+    restart: unless-stopped
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_KEY: ${APP_KEY}
+      APP_URL: https://${APP_DOMAIN}
+      APP_TIMEZONE: Asia/Jakarta
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      BOT_API_TOKEN: ${BOT_API_TOKEN}
+      BOT_WEBHOOK_URL: http://bot:8080
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - siap-network
+    # internal only (diakses frontend & scheduler lewat jaringan docker)
+
+  # ---------- Scheduler (cron Laravel) ----------
+  # WAJIB: menjalankan chat:check-timeout & users:mark-stale-offline tiap menit.
+  scheduler:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: siap-scheduler
+    restart: unless-stopped
+    command: php artisan schedule:work
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_KEY: ${APP_KEY}
+      APP_TIMEZONE: Asia/Jakarta
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      BOT_API_TOKEN: ${BOT_API_TOKEN}
+      BOT_WEBHOOK_URL: http://bot:8080
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - siap-network
+
+  # ---------- Frontend (Vue + Nginx) ----------
+  # Nginx menyajikan SPA dan mem-proxy /api ke backend. Caddy di depannya.
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: siap-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    networks:
+      - siap-network
+
+  # ---------- WhatsApp Bot (Go) ----------
+  bot:
+    build:
+      context: ./bot
+      dockerfile: Dockerfile
+    container_name: siap-bot
+    restart: unless-stopped
+    environment:
+      API_BASE_URL: http://backend:8000/api
+      API_TOKEN: ${BOT_API_TOKEN}
+      WEBHOOK_PORT: "8080"
+      STORE_PATH: /app/data/whatsapp.db   # sesi WA tersimpan di volume
+    depends_on:
+      - backend
+    volumes:
+      - bot_data:/app/data
+    networks:
+      - siap-network
+
+  # ---------- Reverse Proxy + HTTPS (Caddy) ----------
+  caddy:
+    image: caddy:2-alpine
+    container_name: siap-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+    networks:
+      - siap-network
+
+volumes:
+  mysql_data:
+  bot_data:
+  caddy_data:
+  caddy_config:
+
+networks:
+  siap-network:
+    driver: bridge
